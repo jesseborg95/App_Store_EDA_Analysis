@@ -1,0 +1,75 @@
+---
+title: "Description of Data"
+author: "Jonathan Giguere"
+date: "10/2/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r basicfcn, include=F}
+# can add quietly=T option to the require() function
+loadPkg = function(x) { if (!require(x,character.only=T, quietly =T)) { install.packages(x,dep=T,repos="http://cran.us.r-project.org"); if(!require(x,character.only=T)) stop("Package not found") } }
+```
+
+## Section 1: Introduction
+
+The popularity of smartphones has increased greatly every year since Apple released the Iphone in 2007, with approximately 10 billion [Statista](https://statista.com) smartphones sold worldwide since then. Of these 10 billion, Iphones account for almost 20% of sales with a total revenue of $165 billion in 2018 alone [CEO World Magazine](https://ceoworld.biz). Since the meteoric rise of the smartphone and tech industries, many app developers have taken the opportunity to develop their own apps for different operating systems and made them available to download on the Appstore and/or the Google playstore. Today, there are over 2.2 billion iOS apps [Lifewire](https://lifewire.com) and 2.7 billion apps on the Google playstore [Statista](https://statista.com). On average, people spend on around 3 hours on their phone each day [Hacker Noon](https://hackernoon.com); with the majority of time being spent on different apps. Due to the huge popularity of apps, there is a wide variety of genres available for every type of audience with a wide range of pricing. Since many people invest so much time and effort into apps, app data has become an interesting and relevant topic to conduct more research on.
+
+This report focuses mainly on a sample of apps from the appstore, where the composition of this sample will be analysed in depth. The report itself will contain 6 additional chapters: Chapter 2 looks at the source data and the general composition of the dataset. Chapter 3 compares the apps in the appstore to that in the Google playstore; chapter 4 looks at the different app categories; chapter 5 analyses the pricing of the apps and looks at the relationship between app pricing and popularity. Finally chapter 6 is the report conclusion where we report our findings based on the analysis.
+
+## Section 2: Description of Data
+
+### 2.1 Source Data
+
+The source data for our EDA comes from two datasets that our team discovered on [Kaggle](https://www.kaggle.com).  The first dataset contains information about apps in the Google Play Store.  The second contains information about apps in the Apple App Store.  First, we will describe the data pertaining to the Google Play Store.
+
+#### Google Play Data Structure
+
+The Google Play Store dataset contains records for 10,840 different apps.  The variables, and their descriptions are given below:
+
+* **App** - The name of the application
+* **Category** - The category that the app belongs in
+* **Rating** - The current app rating on a scale from 1 to 5 (1 being the lowest)
+* **Reviews** - The number of reviews for the app
+* **Size** - Size of the app given in MB
+* **Installs** - Number of installs given as categories (ex. 10,000+)
+* **Type** - Tells which apps are free and which require payment
+* **Price** - Gives the price for each app
+* **Content Rating** - Indicates which age groups the app is approved for
+* **Genres** - A further breakdown of the Category variable for each app
+* **Last Updated** - Date the app was last updated
+* **Current Ver** - Current version of the app
+
+```{r import Google Play Data, echo=F}
+setwd("/Users/jonathangiguere/Desktop/DATS 6101/Projects/Project 1/Data-Science-Project-1")
+googlePlay <- read.csv('googleplaystore.csv')
+str(googlePlay)
+```
+
+
+
+#### Apple Store Data Structure
+
+The Apple App Store dataset contains records for 7,197 different apps.  The variables, and their descriptions are given below:
+
+* **App** - The name of the application
+* **Category** - The category that the app belongs in
+* **Rating** - The current app rating on a scale from 1 to 5 (1 being the lowest)
+* **Reviews** - The number of reviews for the app
+* **Size** - Size of the app given in MB
+* **Installs** - Number of installs given as categories (ex. 10,000+)
+* **Type** - Tells which apps are free and which require payment
+* **Price** - Gives the price for each app
+* **Content Rating** - Indicates which age groups the app is approved for
+* **Genres** - A further breakdown of the Category variable for each app
+* **Last Updated** - Date the app was last updated
+* **Current Ver** - Current version of the app
+
+```{r import Apple Store Data, echo=F}
+setwd("/Users/jonathangiguere/Desktop/DATS 6101/Projects/Project 1/Data-Science-Project-1")
+appleStore <- read.csv('applestore.csv')
+str(appleStore)
+```

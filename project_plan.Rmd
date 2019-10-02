@@ -1,0 +1,36 @@
+Introduction of Project
+- Brief explanation of the appstore, apps & revenue
+- What this project is going to do
+
+Description of Data
+ - Where we got our data from
+ - The structure of the data
+ - Number of apps in the app store
+ 
+Comparison With Google Playstore
+- Compare overall ratings <- boxplot of rating 
+- Compare overall price <- boxplot of price
+- Proportion of free to paid <- 2 piecharts
+- Ratings Histogram
+
+App Categories
+- Smart Question: Does app category have a correlation with rating and what are the most popular app categories
+- Highest & Lowest Rating Avg By Cat <- box plot of rating by cat
+- Highest & Lowest Price Avg By Cat <- box plot of price by cat
+ <- Bar chart of avg rating by cat
+- Which Categories have the highest ratings <- query
+- Categories with ratings of 4+ <- query and bar plot
+
+
+App Prices
+- Sort into price categories & plot bar charts
+- Rating by price category <- boxplot of price categories vs rating
+- Content rating by price category <- boxplot of price categories vs content rating
+- Total Ratings by price category <- barchart
+- Prices across content rating 
+
+
+
+Conclusion
+
+Bibliography
