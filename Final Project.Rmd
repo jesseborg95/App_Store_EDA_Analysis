@@ -59,6 +59,53 @@ googlePlay$Size <- str_remove(googlePlay$Size, 'M')
 str(googlePlay)
 ```
 
+### 2.2 Clean the Data
+
+Check how many null values are in the playstore data frame:
+```{r check NA, echo = F, include = T}
+
+# review how many fields are NA
+plotNA <- barplot(sapply(playstore,function(x)sum(is.na(x))),
+                  col = "lightblue",
+                  main = "Playstore NA Values",
+                  ylab = "Count of Null Values",
+                  xlab = "App Categories")
+```
+
+
+```{r clean NA, echo = F, include = F}
+# create new data frame for apps where NA is null, then remove rating NAs from main playstore dataset
+ratingNA <- subset(playstore, is.na(Rating))
+playstore = na.omit(playstore)
+
+# to double check that the NAs have been removed
+sapply(playstore,function(x)sum(is.na(x)))
+```
+
+
+The only field with null values is Rating with 1474 missing values. We will store these values in a separate data frame in case we would like to do future analysis on this data. Then we will remove them from the main playstore dataset.
+
+
+Now we will check whether there are duplicates. We will do this by checking the difference between all and unique object.
+```{r check dups, echo = F, include = F}
+
+distinct <- nrow(playstore %>%
+  distinct())
+
+duplicates <- nrow(playstore) - distinct
+```
+There are `r duplicates` duplicates in the data. The next step is to remove duplicates from playstore.
+```{r remove dups, echo = F, include = F}
+
+playstore=playstore[!duplicated(playstore), ]
+
+
+# to double check that the duplicates have been removed
+distinct <- nrow(playstore %>%
+  distinct())
+
+nrow(playstore) - distinct
+```
 
 
 #### Apple Store Data Structure
