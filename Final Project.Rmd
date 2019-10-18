@@ -172,7 +172,14 @@ hist(appleStore$Rating, main = 'Histogram of frequency rating for the Apple Stor
 appleStore$Type <- factor(ifelse(appleStore$Price == 0.00, 0, 1), labels = c('Free', 'Paid'))
 
 ggplot(appleStore, aes(x = " ", y=Type, fill = Type)) +
-  geom_bar(width = 1, stat = "identity") +
+  geom_bar(stat = "identity") +
+  ggtitle('Price Composition of Apps in the Appstore') +
+  coord_polar("y", start=0) +
+  theme_void()
+
+ggplot(googlePlay, aes(x = " ", y=Type, fill = Type)) +
+  geom_bar(stat = "identity") +
+  ggtitle('Price Composition of Apps in the Google Playstore') +
   coord_polar("y", start=0) +
   theme_void()
 ```
