@@ -45,11 +45,11 @@ The Google Play Store dataset contains records for 10,840 different apps.  The v
 * **Size** - Size of the app given in MB
 * **Installs** - Number of installs given as categories (ex. 10,000+)
 * **Type** - Tells which apps are free and which require payment
-* **Price** - Gives the price for each app
-* **Content Rating** - Indicates which age groups the app is approved for
+* **Price** - Gives the Price for each app
+* **Content_Rating** - Indicates which age groups the app is approved for
 * **Genres** - A further breakdown of the Category variable for each app
 * **Last Updated** - Date the app was last updated
-* **Current Ver** - Current version of the app
+* **Current_Ver** - Current_Version of the app
 
 ```{r import Google Play Data, echo=F}
 library("stringr")
@@ -118,9 +118,9 @@ The Apple App Store dataset contains records for 7,197 different apps.  The vari
 * **Rating** - The current app rating on a scale from 1 to 5 (1 being the lowest)
 * **Reviews** - The number of reviews for the app
 * **Size** - Size of the app given in MB
-* **Price** - Gives the price for each app
-* **Content Rating** - Indicates which age groups the app is approved for
-* **Current Ver** - Current version of the app
+* **Price** - Gives the Price for each app
+* **Content_Rating** - Indicates which age groups the app is approved for
+* **Current_Ver** - Current_Version of the app
 
 ```{r import Apple Store Data, echo=F}
 appleStore <- read.csv('applestore.csv')
@@ -129,7 +129,7 @@ appleStore <- subset(appleStore, select = -c(id, currency, rating_count_ver,
                                              ipadSc_urls.num, lang.num,
                                              vpp_lic))
 colnames(appleStore) <- c('X', 'App', 'Size', 'Price', 'Reviews',
-                          'Rating', 'Current Ver', 'Content Rating',
+                          'Rating', 'Current_Ver', 'Content_Rating',
                           'Category')
 appleStore$Size <- round(appleStore$Size/1000000, 0)
 str(appleStore)
@@ -169,26 +169,26 @@ hist(appleStore$Rating, main = 'Histogram of frequency rating for the Apple Stor
 ### 3.4 Free Vs. Paid
 
 ```{r pie}
-appleStore$Type <- factor(ifelse(appleStore$Price == 0.00, 0, 1), labels = c('Free', 'Paid'))
+#appleStore$Type <- factor(ifelse(appleStore$Price == 0.00, 0, 1), labels = c('Free', 'Paid'))
 
-ggplot(appleStore, aes(x = " ", y=Type, fill = Type)) +
-  geom_bar(stat = "identity") +
-  ggtitle('Price Composition of Apps in the Appstore') +
-  coord_polar("y", start=0) +
-  theme_void()
+#ggplot(appleStore, aes(x = " ", y=Type, fill = Type)) +
+  #geom_bar(stat = "identity") +
+  #ggtitle('Price Composition of Apps in the Appstore') +
+  #coord_polar("y", start=0) +
+  #theme_void()
 
-ggplot(googlePlay, aes(x = " ", y=Type, fill = Type)) +
-  geom_bar(stat = "identity") +
-  ggtitle('Price Composition of Apps in the Google Playstore') +
-  coord_polar("y", start=0) +
-  theme_void()
+#ggplot(googlePlay, aes(x = " ", y=Type, fill = Type)) +
+  #geom_bar(stat = "identity") +
+  #ggtitle('Price Composition of Apps in the Google Playstore') +
+  #coord_polar("y", start=0) +
+  #theme_void()
 ```
 
 
 # Price
 ``` {r type, echo = F}
-freeApps <- subset(appleStore, appleStore$price == 0.00)
-paidApps <- subset(appleStore, appleStore$price != 0.00)
+freeApps <- subset(appleStore, appleStore$Price == 0.00)
+paidApps <- subset(appleStore, appleStore$Price != 0.00)
 
 print(nrow(freeApps))
 print(nrow(paidApps))
@@ -205,11 +205,11 @@ print(nrow(paidApps))
 ```
 
 ```{r echo=F}
-  appleStore_cat <- appleStore[which(appleStore$price == 0.00 |
-                                       appleStore$price != 0.00
+  appleStore_cat <- appleStore[which(appleStore$Price == 0.00 |
+                                       appleStore$Price != 0.00
                                        ), ]
-  appleStore_cat$PriceCat <- factor(ifelse(appleStore_cat$price == 0.00, 0, 1), labels = c("Free", "Paid"))
-  ggplot(appleStore_cat, aes(x = prime_genre, y = user_rating)) +
+  appleStore_cat$PriceCat <- factor(ifelse(appleStore_cat$Price == 0.00, 0, 1), labels = c("Free", "Paid"))
+  ggplot(appleStore_cat, aes(x = Category, y = Rating)) +
     geom_boxplot(fill=viridis(46)) +
     #ggtitle("Boxplot of User Rating by Genre across Free Vs Paid Apps")
     theme_bw() +
@@ -221,7 +221,7 @@ print(nrow(paidApps))
 ```
 
 ```{r }
-  ggplot(appleStore_cat, aes(x = cont_rating, y = user_rating)) +
+  ggplot(appleStore_cat, aes(x = Content_Rating, y = Rating)) +
       geom_boxplot(fill=viridis(8)) +
       #ggtitle("Boxplot of User Rating by Genre across Free Vs Paid Apps")
       theme_bw() +
@@ -231,7 +231,7 @@ print(nrow(paidApps))
 ```
 ```{r }
 
-  ggplot(appleStore_cat, aes(x = PriceCat, y = user_rating)) +
+  ggplot(appleStore_cat, aes(x = PriceCat, y = Rating)) +
       geom_boxplot() +
       #ggtitle("Boxplot of User Rating by Genre across Free Vs Paid Apps")
       theme_bw() +
@@ -242,7 +242,7 @@ print(nrow(paidApps))
     
 
 ```{r echo = F}
-ggplot(freeApps, aes(prime_genre)) +
+ggplot(freeApps, aes(Category)) +
   geom_bar( fill = viridis(23), color = 'black') +
   ggtitle('Free Apps in the appleStore by Genre') + 
   xlab('Genre') + ylab('Number of Apps') + 
@@ -254,7 +254,7 @@ ggplot(freeApps, aes(prime_genre)) +
 ```
 
 ```{r echo = F}
-ggplot(paidApps, aes(prime_genre)) +
+ggplot(paidApps, aes(Category)) +
   geom_bar(fill = viridis(23), color = 'black') +
   ggtitle('Paid Apps in the appleStore by Genre') + 
   xlab('Genre') + ylab('Number of Apps') + 
@@ -268,7 +268,7 @@ In the appleStore, apps are either free or paid.
 What genre of apps are rated more in the free vs paid apps?
 
 ```{r echo = F}
-catFreeRating = aggregate(freeApps$user_rating, list(freeApps$prime_genre), mean)
+catFreeRating = aggregate(freeApps$Rating, list(freeApps$Category), mean)
 names(catFreeRating) = c("Genre", "Avg_rating")
 
 ggplot(catFreeRating, aes(x = Genre, y = Avg_rating)) + 
@@ -284,7 +284,7 @@ ggplot(catFreeRating, aes(x = Genre, y = Avg_rating)) +
 
 
 ```{r echo = F}
-catPaidRating = aggregate(paidApps$user_rating, list(paidApps$prime_genre), mean)
+catPaidRating = aggregate(paidApps$Rating, list(paidApps$Category), mean)
 names(catPaidRating) = c("Genre", "Avg_rating")
 
 ggplot(catPaidRating, aes(x = Genre, y = Avg_rating)) + 
@@ -303,7 +303,7 @@ Do users rate free apps better than paid apps?
 ####TODO : Top 5 rated genre in Paid Apps 
 
 ```{r echo = F}
-ggplot(freeApps, aes(cont_rating)) +
+ggplot(freeApps, aes(Content_Rating)) +
   geom_bar(fill = viridis(4), color = 'black') +
   ggtitle('Free Apps in the appleStore by User Rating') + 
   xlab('Genre') + ylab('Number of Apps') + 
@@ -315,7 +315,7 @@ ggplot(freeApps, aes(cont_rating)) +
 ```
 
 ```{r echo = F}
-ggplot(paidApps, aes(cont_rating)) +
+ggplot(paidApps, aes(Content_Rating)) +
   geom_bar(fill = viridis(4), color = 'black') +
   ggtitle('Paid Apps in the appleStore by User Rating') + 
   xlab('User Rating') + ylab('Number of Apps') + 
