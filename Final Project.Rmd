@@ -51,11 +51,8 @@ The Google Play Store dataset contains records for 10,840 different apps.  The v
 * **Current Ver** - Current version of the app
 
 ```{r import Google Play Data, echo=F}
-<<<<<<< HEAD
-=======
 library("stringr")
-setwd("/Users/jonathangiguere/Desktop/DATS 6101/Projects/Project 1/Data-Science-Project-Final-master")
->>>>>>> b926f75afa48e97487aae22a4147bc5c497aeddc
+# setwd("/Users/jonathangiguere/Desktop/DATS 6101/Projects/Project 1/Data-Science-Project-Final-master")
 googlePlay <- read.csv('googleplaystore.csv')
 googlePlay <- subset(googlePlay, select = -c(Android.Ver) )
 googlePlay$Size <- str_remove(googlePlay$Size, 'M')
