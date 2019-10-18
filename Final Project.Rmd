@@ -100,10 +100,9 @@ The Appstore dataset contains 7197 different apps whereas the Google Playstore c
 ### 3.1 Rating Composition
 
 ```{r box1}
-df1 <- data.frame(appleStore$price)
+df1 <- data.frame(appleStore$Price)
 df2 <- data.frame(googlePlay$Price)
-df3 <- rbind(df1, df2)
-ggplot(appleStore, aes(y = price)) +
+ggplot(appleStore, aes(y = Price)) +
   geom_boxplot()
 ```
 
@@ -111,7 +110,7 @@ ggplot(appleStore, aes(y = price)) +
 
 ```{r hist}
 hist(googlePlay$Rating, main = 'Histogram of frequency rating for the Google Playstore', xlab = 'Rating', col = viridis(20))
-hist(appleStore$user_rating, main = 'Histogram of frequency rating for the Apple Store', xlab = 'Rating', col = viridis(12))
+hist(appleStore$Rating, main = 'Histogram of frequency rating for the Apple Store', xlab = 'Rating', col = viridis(12))
 ```
 
 ### 3.3 Price Composition
@@ -122,7 +121,7 @@ hist(appleStore$user_rating, main = 'Histogram of frequency rating for the Apple
 ### 3.4 Free Vs. Paid
 
 ```{r pie}
-appleStore$Type <- factor(ifelse(appleStore$price == 0.00, 0, 1), labels = c('Free', 'Paid'))
+appleStore$Type <- factor(ifelse(appleStore$Price == 0.00, 0, 1), labels = c('Free', 'Paid'))
 
 ggplot(appleStore, aes(x = " ", y=Type, fill = Type)) +
   geom_bar(width = 1, stat = "identity") +
