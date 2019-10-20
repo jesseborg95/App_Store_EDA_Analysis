@@ -19,6 +19,7 @@ loadPkg = function(x) { if (!require(x,character.only=T, quietly =T)) { install.
 library(ggplot2)
 library(viridis)
 library(viridisLite)
+library(dplyr)
 ```
 
 ## Section 1: Introduction
@@ -65,7 +66,7 @@ Check how many null values are in the playstore data frame:
 ```{r check NA, echo = F, include = T}
 
 # review how many fields are NA
-plotNA <- barplot(sapply(playstore,function(x)sum(is.na(x))),
+plotNA <- barplot(sapply(googlePlay,function(x)sum(is.na(x))),
                   col = "lightblue",
                   main = "Playstore NA Values",
                   ylab = "Count of Null Values",
@@ -75,11 +76,11 @@ plotNA <- barplot(sapply(playstore,function(x)sum(is.na(x))),
 
 ```{r clean NA, echo = F, include = F}
 # create new data frame for apps where NA is null, then remove rating NAs from main playstore dataset
-ratingNA <- subset(playstore, is.na(Rating))
-playstore = na.omit(playstore)
+ratingNA <- subset(googlePlay, is.na(Rating))
+googlePlay = na.omit(googlePlay)
 
 # to double check that the NAs have been removed
-sapply(playstore,function(x)sum(is.na(x)))
+sapply(googlePlay,function(x)sum(is.na(x)))
 ```
 
 
@@ -89,24 +90,33 @@ The only field with null values is Rating with 1474 missing values. We will stor
 Now we will check whether there are duplicates. We will do this by checking the difference between all and unique object.
 ```{r check dups, echo = F, include = F}
 
-distinct <- nrow(playstore %>%
+distinct <- nrow(googlePlay %>%
   distinct())
 
-duplicates <- nrow(playstore) - distinct
+duplicates <- nrow(googlePlay) - distinct
 ```
 There are `r duplicates` duplicates in the data. The next step is to remove duplicates from playstore.
 ```{r remove dups, echo = F, include = F}
 
-playstore=playstore[!duplicated(playstore), ]
+googlePlay = googlePlay[!duplicated(googlePlay), ]
 
 
 # to double check that the duplicates have been removed
-distinct <- nrow(playstore %>%
+distinct <- nrow(googlePlay %>%
   distinct())
 
-nrow(playstore) - distinct
+nrow(googlePlay) - distinct
 ```
 
+
+Next, to clean the data we will change the Installs variable from a nominal categorical variable to an ordinal categorical variable. Installs is a variable buckets the range of the number of times an app has been installed. We will place the factor levels in order from least to greatest.
+
+```{r order installs, echo = F, include = F}
+
+factor(googlePlay$Installs, order = TRUE, 
+       levels = c("0", "0+", "1+", "5+", "10+", "50+", "100+", "500+", "1,000+", "5,000+", "10,000+", "50,000+", "100,000+", "500,000+", "1,000,000+", "5,000,000+", "10,000,000+", "50,000,000", "100,000,000+", "500,000,000+", "1,000,000,000+"))
+
+```
 
 #### Apple Store Data Structure
 
