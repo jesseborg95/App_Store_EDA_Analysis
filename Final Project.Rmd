@@ -184,8 +184,60 @@ hist(appleStore$Rating, main = 'Histogram of frequency rating for the Apple Stor
   #theme_void()
 ```
 
+## Section 4: App Categories
 
-# Price
+### 4.1 SMART Question
+
+```{r bar2, echo = F}
+ggplot(playstore, aes(Category)) + 
+        geom_bar(fill = viridis(33), color = 'black') +
+        ggtitle('Number of Apps in the Google Playstore by Category') +
+        ylab('Number of Apps') +
+        coord_cartesian(ylim = c(0,1250)) +
+        theme_classic() +
+        theme(plot.title = element_text(hjust = 0.5)) + 
+        theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black'))
+```
+
+``` {r type, echo = F}
+free <- subset(playstore, playstore$Type == 'Free')
+paid <- subset(playstore, playstore$Type == 'Paid')
+
+print(nrow(free))
+print(nrow(paid))
+```
+
+```{r barx, echo = F}
+paid$Cost = as.numeric(gsub("\\$", "", paid$Price))
+catprice <- aggregate(paid$Cost, list(paid$Category), mean)
+names(catprice) <- c('Category', 'Avg_Price')
+
+ggplot(catprice, aes(x = Category, y = Avg_Price)) +
+        geom_bar(stat = 'Identity', fill = viridis(28), color = 'black') + 
+        ggtitle('Average Price of Paid Apps in the Google Playstore by Category') +
+        ylab('Average Price ($)') +
+        coord_cartesian(ylim = c(0,20)) +
+        theme_bw() +
+        theme(plot.title = element_text(hjust = 0.5)) + 
+        theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 7, color = 'black')) +
+        theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+```
+
+```{r bary, echo = F}
+catrating <- aggregate(playstore$Rating, list(playstore$Category), mean, na.rm = TRUE)
+names(catrating) <- c('Category', 'Avg_Rating')
+
+ggplot(catrating, aes(x = Category, y = Avg_Rating)) +
+        geom_bar(stat = 'Identity', fill = viridis(33), color = 'black') +
+        ggtitle('Average Rating of Apps in the Google Playstore by Genre') +
+        ylab('Average Rating') +
+        coord_cartesian(ylim = c(3.75, 4.5)) +
+        theme_classic() +
+        theme(plot.title = element_text(hjust = 0.5)) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black'))
+```
+
+## Price
 ``` {r type, echo = F}
 freeApps <- subset(appleStore, appleStore$Price == 0.00)
 paidApps <- subset(appleStore, appleStore$Price != 0.00)
