@@ -16,6 +16,7 @@ loadPkg = function(x) { if (!require(x,character.only=T, quietly =T)) { install.
 ```
 
 ```{r, packages, include = F}
+library(magrittr)
 library(ggplot2)
 library(dplyr)
 library(viridis)
@@ -74,13 +75,14 @@ plotNA <- barplot(sapply(googlePlay,function(x)sum(is.na(x))),
 ```
 
 
-```{r clean NA, echo = F, include = F}
+```{r clean NA, echo = F, include = T}
 # create new data frame for apps where NA is null, then remove rating NAs from main playstore dataset
 ratingNA <- subset(googlePlay, is.na(Rating))
-playstore = na.omit(googlePlay)
+googlePlay = na.omit(googlePlay)
 
 # to double check that the NAs have been removed
 sapply(googlePlay,function(x)sum(is.na(x)))
+nrow(googlePlay)
 ```
 
 
@@ -88,15 +90,16 @@ The only field with null values is Rating with 1474 missing values. We will stor
 
 
 Now we will check whether there are duplicates. We will do this by checking the difference between all and unique object.
-```{r check dups, echo = F, include = F}
+```{r check dups, echo = F, include = T}
 
 distinct <- nrow(googlePlay %>%
   distinct())
 
 duplicates <- nrow(googlePlay) - distinct
+duplicates
 ```
 There are `r duplicates` duplicates in the data. The next step is to remove duplicates from playstore.
-```{r remove dups, echo = F, include = F}
+```{r remove dups, echo = F, include = T}
 
 googlePlay=googlePlay[!duplicated(googlePlay), ]
 
@@ -106,6 +109,7 @@ distinct <- nrow(googlePlay %>%
   distinct())
 
 nrow(googlePlay) - distinct
+
 ```
 
 
@@ -237,97 +241,105 @@ ggplot(catrating, aes(x = Category, y = Avg_Rating)) +
         theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black'))
 ```
 
+<<<<<<< HEAD
 ## Price
+=======
+# Price
+
+KEY QUESTION: How does the price influence the distribution of apps across category, rating and content rating
+>>>>>>> ecc354cf4d38cdcd042d3a8135607a05d1f18659
 ``` {r type, echo = F}
-freeApps <- subset(appleStore, appleStore$Price == 0.00)
-paidApps <- subset(appleStore, appleStore$Price != 0.00)
+# Create two new dataframes for free and paid apps separately
+freeApps <- subset(googlePlay, googlePlay$Price == 0.00)
+paidApps <- subset(googlePlay, googlePlay$Price != 0.00)
 
-print(nrow(freeApps))
-print(nrow(paidApps))
+nrow(freeApps)
+nrow(paidApps)
 ```
 
-```{r echo=F}
-  summary(freeApps)
-  str(freeApps)
-```
+There are `r nrow(freeApps)` free apps and `r nrow(paidApps)` paid apps corresponding to `r format((nrow(freeApps)/nrow(googlePlay))*100, digits=3)`% and `r format((nrow(paidApps)/nrow(googlePlay))*100, digits=3)`% respectively in Google playstore 
 
-```{r echo=F}
-  summary(paidApps)
-  str(paidApps)
-```
 
+How do users rate free and paid apps across different categories
 ```{r echo=F}
-  appleStore_cat <- appleStore[which(appleStore$Price == 0.00 |
-                                       appleStore$Price != 0.00
-                                       ), ]
-  appleStore_cat$PriceCat <- factor(ifelse(appleStore_cat$Price == 0.00, 0, 1), labels = c("Free", "Paid"))
-  ggplot(appleStore_cat, aes(x = Category, y = Rating)) +
-    geom_boxplot(fill=viridis(46)) +
+# Create new dataframe and new column, assign categorical values of 0 and 1 for free and paid apps respectively   
+  googlePlay_cat <- googlePlay[which(googlePlay$Price == 0.00 |googlePlay$Price != 0.00), ]
+  googlePlay_cat$PriceCat <- factor(ifelse(googlePlay_cat$Price == 0.00, 0, 1), labels = c("Free", "Paid"))
+  ggplot(googlePlay_cat, aes(x = Category, y = Rating)) +
+    geom_boxplot(fill=viridis(61)) +
     #ggtitle("Boxplot of User Rating by Genre across Free Vs Paid Apps")
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5)) +
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
     theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 6, color = 'black')) +
     facet_grid(. ~ PriceCat)
-
 ```
-
+What kind of ratings does the different content rating categories have for both free and paid apps
 ```{r }
-  ggplot(appleStore_cat, aes(x = Content_Rating, y = Rating)) +
-      geom_boxplot(fill=viridis(8)) +
-      #ggtitle("Boxplot of User Rating by Genre across Free Vs Paid Apps")
+  ggplot(googlePlay_cat, aes(x = Content.Rating, y = Rating)) +
+      geom_boxplot(fill=viridis(10)) +
+      ggtitle("Boxplot of User Rating by Content Rating across Free Vs Paid Apps")+
+      facet_grid(. ~ PriceCat) +
       theme_bw() +
       theme(plot.title = element_text(hjust = 0.5)) +
       theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-      facet_grid(. ~ PriceCat)
+      theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 6, color = 'black'))      
 ```
-```{r }
 
-  ggplot(appleStore_cat, aes(x = PriceCat, y = Rating)) +
-      geom_boxplot() +
-      #ggtitle("Boxplot of User Rating by Genre across Free Vs Paid Apps")
-      theme_bw() +
-      theme(plot.title = element_text(hjust = 0.5)) +
-      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-      facet_grid(. ~ PriceCat)
-```
-    
-
+How are free apps distributed by category
 ```{r echo = F}
-ggplot(freeApps, aes(Category)) +
-  geom_bar( fill = viridis(23), color = 'black') +
-  ggtitle('Free Apps in the appleStore by Genre') + 
-  xlab('Genre') + ylab('Number of Apps') + 
-  coord_cartesian(ylim = c(0, 1000)) + 
+# create a dataframe sorted by count of category for free apps and plot
+ freeAppsCount <- freeApps %>% group_by(Category) %>% summarise(NumOfApps = n()) %>% arrange(desc(NumOfApps)) %>% mutate(Category = factor(Category, levels = unique(Category)))
+freeAppsCount
+ ggplot(freeAppsCount, aes(x=Category, y=NumOfApps)) +
+  geom_bar( fill = viridis(33), color = 'black', stat = 'identity') +
+  ggtitle('Free Apps in the Google Playstore by Category') + 
+  xlab('Category') + ylab('Number of Apps') + 
+  #coord_cartesian(ylim = c(0, 1800)) + 
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black'))
+
+```
+
+Top 5 Category for Free Apps
+
+```{r }
+  head(freeAppsCount, n = 5)
+```
+```{r echo = F}
+# create a dataframe sorted by count of category for paid apps and plot
+
+  paidAppsCount <- paidApps %>% group_by(Category) %>% summarise(NumOfApps = n()) %>% arrange(desc(NumOfApps)) %>% mutate(Category = factor(Category, levels = unique(Category)))
+ggplot(paidAppsCount, aes(x = Category, y = NumOfApps)) +
+  geom_bar(fill = viridis(28), color = 'black', stat = 'identity') +
+  ggtitle('Paid Apps in Google Playstore by Category') + 
+  xlab('Category') + ylab('Number of Apps') + 
+  coord_cartesian(ylim = c(0, 200)) + 
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5)) +
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black'))
 ```
 
-```{r echo = F}
-ggplot(paidApps, aes(Category)) +
-  geom_bar(fill = viridis(23), color = 'black') +
-  ggtitle('Paid Apps in the appleStore by Genre') + 
-  xlab('Genre') + ylab('Number of Apps') + 
-  coord_cartesian(ylim = c(0, 1000)) + 
-  theme_bw() +
-  theme(plot.title = element_text(hjust = 0.5)) +
-  theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black'))
+Top 5 Category for Paid Apps
+```{r }
+  head(paidAppsCount, n = 5)
 ```
-In the appleStore, apps are either free or paid. 
+In the Playstore, apps are either free or paid. 
 What genre of apps are rated more in the free vs paid apps?
 
 ```{r echo = F}
-catFreeRating = aggregate(freeApps$Rating, list(freeApps$Category), mean)
-names(catFreeRating) = c("Genre", "Avg_rating")
+# create new dataframe containing different categories and their respective average rating for free apps
+catFreeRating = freeApps %>% group_by(Category) %>% summarise( Avg_rating = mean(Rating)) %>% 
+arrange(desc(Avg_rating)) %>% mutate(Category = factor(Category, levels = unique(Category)))
 
-ggplot(catFreeRating, aes(x = Genre, y = Avg_rating)) + 
-  geom_bar(stat = 'Identity', fill = viridis(23), color = "black") +
-  ggtitle("Average Rating of Free Apps by Genre") +
+ggplot(catFreeRating, aes(x = Category, y = Avg_rating)) + 
+  geom_bar(stat = 'Identity', fill = viridis(33), color = "black") +
+  ggtitle("Average Rating of Free Apps by Category") +
    ylab('Average Rating') +
-  coord_cartesian(ylim = c(1.5, 4.5)) +
+  coord_cartesian(ylim = c(1.5, 5.5)) +
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 9, color = 'black')) +
@@ -336,30 +348,44 @@ ggplot(catFreeRating, aes(x = Genre, y = Avg_rating)) +
 
 
 ```{r echo = F}
-catPaidRating = aggregate(paidApps$Rating, list(paidApps$Category), mean)
-names(catPaidRating) = c("Genre", "Avg_rating")
+# create new dataframe containing different categories and their respective average rating for paid apps
+#catPaidRating = aggregate(paidApps$Rating, list(paidApps$Category), mean)
+#names(catPaidRating) = c("Category", "Avg_rating")
 
-ggplot(catPaidRating, aes(x = Genre, y = Avg_rating)) + 
-  geom_bar(stat = 'Identity', fill = viridis(23), color = "black") +
-  ggtitle("Average Rating of Paid Apps by Genre") +
+catPaidRating = paidApps %>% group_by(Category) %>% summarise( Avg_rating = mean(Rating)) %>% 
+arrange(desc(Avg_rating)) %>% mutate(Category = factor(Category, levels = unique(Category)))
+
+ggplot(catPaidRating, aes(x = Category, y = Avg_rating)) + 
+  geom_bar(stat = 'Identity', fill = viridis(28), color = "black") +
+  ggtitle("Average Rating of Paid Apps by Category") +
    ylab('Average Rating') +
-  coord_cartesian(ylim = c(2.5, 4.5)) +
+  coord_cartesian(ylim = c(1.5, 5.5)) +
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 9, color = 'black')) +
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
 ```
 
 Do users rate free apps better than paid apps?
-####TODO : Top 5 rated genre in Free Apps 
-####TODO : Top 5 rated genre in Paid Apps 
+Top 5 rated category in Free Apps 
+```{r }
+
+  head(catFreeRating, n = 10)
+```
+
+Top 5 rated category in Paid Apps 
+```{r }
+
+  head(catPaidRating, n = 10)
+```
 
 ```{r echo = F}
-ggplot(freeApps, aes(Content_Rating)) +
-  geom_bar(fill = viridis(4), color = 'black') +
-  ggtitle('Free Apps in the appleStore by User Rating') + 
-  xlab('Genre') + ylab('Number of Apps') + 
-  coord_cartesian(ylim = c(0, 1000)) + 
+ggplot(freeApps, aes(Content.Rating)) +
+  geom_bar(fill = viridis(6), color = 'black') +
+  ggtitle('Free Apps in Google Playstore by Content Rating') + 
+  xlab('Content Rating') + ylab('Number of Apps') + 
+  coord_cartesian(ylim = c(0, 10000)) + 
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5)) +
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
@@ -367,9 +393,9 @@ ggplot(freeApps, aes(Content_Rating)) +
 ```
 
 ```{r echo = F}
-ggplot(paidApps, aes(Content_Rating)) +
+ggplot(paidApps, aes(Content.Rating)) +
   geom_bar(fill = viridis(4), color = 'black') +
-  ggtitle('Paid Apps in the appleStore by User Rating') + 
+  ggtitle('Paid Apps in Google Playstore by Content Rating') + 
   xlab('User Rating') + ylab('Number of Apps') + 
   coord_cartesian(ylim = c(0, 1000)) + 
   theme_bw() +
