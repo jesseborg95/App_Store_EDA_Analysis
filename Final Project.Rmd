@@ -18,6 +18,7 @@ loadPkg = function(x) { if (!require(x,character.only=T, quietly =T)) { install.
 ```{r, packages, include = F}
 library(magrittr)
 library(ggplot2)
+library(plyr)
 library(dplyr)
 library(viridis)
 library(viridisLite)
@@ -200,10 +201,132 @@ hist(appleStore$Rating, main = 'Histogram of frequency rating for the Apple Stor
   #theme_void()
 ```
 
+## Section 4: App Categories
 
-# Price
+### 4.1 SMART Question
+
+Does app category have a correlation with rating and what app categories in the Googleplay have the highest priced apps?
+
+### 4.2 Category Analysis
+
+By grouping apps by category, we can determine the average rating by category and average price, as well as overall number of apps and number of apps  by category. The most common categories are family, game and tools; below the category distrubution of apps is shown.
+
+```{r bar2, echo = F}
+ggplot(googlePlay, aes(Category)) + 
+        geom_bar(fill = viridis(33), color = 'black') +
+        ggtitle('Number of Apps in the Google Playstore by Category') +
+        ylab('Number of Apps') +
+        coord_cartesian(ylim = c(0,1250)) +
+        theme_classic() +
+        theme(plot.title = element_text(hjust = 0.5)) + 
+        theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black'))
+```
+
+The highest rated categories on average are Events, Education and Art & Desgin, while the lowest rated categories are Maps & Navigation, Tools and Dating.
+
+```{r bary, echo = F}
+catrating <- aggregate(googlePlay$Rating, list(googlePlay$Category), mean, na.rm = TRUE)
+names(catrating) <- c('Category', 'Avg_Rating')
+
+ggplot(catrating, aes(x = Category, y = Avg_Rating)) +
+        geom_bar(stat = 'Identity', fill = viridis(33), color = 'black') +
+        ggtitle('Average Rating of Apps in the Google Playstore by Genre') +
+        ylab('Average Rating') +
+        coord_cartesian(ylim = c(3.75, 4.5)) +
+        theme_classic() +
+        theme(plot.title = element_text(hjust = 0.5)) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black'))
+```
+
+Highest Average Rating by Category
+
+```{r top rating}
+head(catrating[order(catrating$Avg_Rating, decreasing = TRUE),], n = 5)
+```
+
+
+Lowest Average Rating by Category
+```{r bottom rating}
+tail(catrating[order(catrating$Avg_Rating, decreasing = TRUE),], n = 5)
+```
+
+``` {r type2, include = F}
+free <- subset(googlePlay, googlePlay$Type == 'Free')
+paid <- subset(googlePlay, googlePlay$Type == 'Paid')
+
+print(nrow(free))
+print(nrow(paid))
+```
+
+Even though most of the apps in the Googleplaystore are free; with `r nrow(free)` free apps and `r nrow(paid)` apps. Out of those paid apps, the most expensive ones on average are Finance and Lifestyle apps by a long shot. 
+
+```{r barx, echo = F}
+paid$Cost = as.numeric(gsub("\\$", "", paid$Price))
+catprice <- aggregate(paid$Cost, list(paid$Category), mean)
+names(catprice) <- c('Category', 'Avg_Price')
+
+ggplot(catprice, aes(x = Category, y = Avg_Price)) +
+        geom_bar(stat = 'Identity', fill = viridis(28), color = 'black') + 
+        ggtitle('Average Price of Paid Apps in the Google Playstore by Category') +
+        ylab('Average Price ($)') +
+        coord_cartesian(ylim = c(0,20)) +
+        theme_bw() +
+        theme(plot.title = element_text(hjust = 0.5)) + 
+        theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 7, color = 'black')) +
+        theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+```
+
+Highes Average Price by Category
+
+```{r top paid}
+head(catprice[order(catprice$Avg_Price, decreasing = TRUE),], n = 5)
+```
+
+### 4.3 Which app category in the Googleplaystore receives most high ratings?
+
+In this section, we would like to identify the most well rated app categories in the Googleplaystore. We define ‘most well rated’ as ratings that are greater or equal to 4.8. The score 4.8 is chosen because 95% of app ratings in the Googleplaystore are below 4.8. In other words, only 5% of the Googleplaystore apps have ratings that are greater or equal to 4.8. Therefore, the 95th percentile helps us to filter the best rated apps.
+
+```{r hist2}
+hist(googlePlay$Rating, main = 'Histogram of frequency rating for the Google Playstore', xlab = 'Rating', col = viridis(20))
+```
+
+```{r percentile, include = F}
+quantile(googlePlay$Rating, .95)
+```
+According to the 95th percentile, the apps in the top 5% having a rating of 4.8 or higher.
+
+```{r best rated}
+top_rated <- subset(googlePlay, googlePlay$Rating >= 4.8)
+top_count <- plyr::count(top_rated$Category)
+names(top_count) <- c('Category', 'Count')
+top_count <- top_count[order(top_count$Count, decreasing = TRUE),]
+```
+
+To do this, a new subset was created from the Googleplaystore dataframe which only contained apps with a rating of 4.8 or greater. There are `r nrow(top_rated)` apps which fall within the highly rated threshold of 4.8. After this, the number of apps from each catergory within this subset was done using the count function. This count was then plotted into a bar chart to graphically demonstrate the distrubution of high ratings within different categories.
+
+```{r topplot}
+ggplot(top_count, aes(x = reorder(Category, -Count), y = Count)) +
+        geom_bar(stat = 'Identity', fill = plasma(32), color = 'black') + 
+        ggtitle('Highly Rated Apps in the Google Playstore by Category') +
+        ylab('Total') +
+        coord_cartesian(ylim = c(0,60)) +
+        theme_bw() +
+        theme(plot.title = element_text(hjust = 0.5)) + 
+        theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 7, color = 'black')) +
+        theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+```
+
+Catergories with the highest ratings are Family (by a large margin), then Medical, Lifestyle and Health & Fitness being very similar.
+```{r topr}
+head(top_count[order(top_count$Count, decreasing = TRUE),], n = 5)
+```
+
+Overall; the highest rated apps on average are in the Events category, the most expensive apps are in the Finance category and the category with the most highly rated apps are Family.
+
+## Section 5: App Pricing
 
 KEY QUESTION: How does the price influence the distribution of apps across category, rating and content rating
+
 ``` {r type, echo = F}
 # Create two new dataframes for free and paid apps separately
 freeApps <- subset(googlePlay, googlePlay$Price == 0.00)
@@ -243,9 +366,9 @@ What kind of ratings does the different content rating categories have for both 
 ```
 
 How are free apps distributed by category
-```{r echo = F}
+```{r d, echo = F}
 # create a dataframe sorted by count of category for free apps and plot
- freeAppsCount <- freeApps %>% group_by(Category) %>% summarise(NumOfApps = n()) %>% arrange(desc(NumOfApps)) %>% mutate(Category = factor(Category, levels = unique(Category)))
+freeAppsCount <- freeApps %>% group_by(Category) %>% dplyr::summarise(NumOfApps = n()) %>% arrange(desc(NumOfApps)) %>% mutate(Category = factor(Category, levels = unique(Category)))
 freeAppsCount
  ggplot(freeAppsCount, aes(x=Category, y=NumOfApps)) +
   geom_bar( fill = viridis(33), color = 'black', stat = 'identity') +
@@ -267,7 +390,7 @@ Top 5 Category for Free Apps
 ```{r echo = F}
 # create a dataframe sorted by count of category for paid apps and plot
 
-  paidAppsCount <- paidApps %>% group_by(Category) %>% summarise(NumOfApps = n()) %>% arrange(desc(NumOfApps)) %>% mutate(Category = factor(Category, levels = unique(Category)))
+  paidAppsCount <- paidApps %>% group_by(Category) %>% dplyr::summarise(NumOfApps = n()) %>% arrange(desc(NumOfApps)) %>% mutate(Category = factor(Category, levels = unique(Category)))
 ggplot(paidAppsCount, aes(x = Category, y = NumOfApps)) +
   geom_bar(fill = viridis(28), color = 'black', stat = 'identity') +
   ggtitle('Paid Apps in Google Playstore by Category') + 
@@ -288,7 +411,7 @@ What genre of apps are rated more in the free vs paid apps?
 
 ```{r echo = F}
 # create new dataframe containing different categories and their respective average rating for free apps
-catFreeRating = freeApps %>% group_by(Category) %>% summarise( Avg_rating = mean(Rating)) %>% 
+catFreeRating = freeApps %>% group_by(Category) %>% dplyr::summarise( Avg_rating = mean(Rating)) %>% 
 arrange(desc(Avg_rating)) %>% mutate(Category = factor(Category, levels = unique(Category)))
 
 ggplot(catFreeRating, aes(x = Category, y = Avg_rating)) + 
@@ -308,7 +431,7 @@ ggplot(catFreeRating, aes(x = Category, y = Avg_rating)) +
 #catPaidRating = aggregate(paidApps$Rating, list(paidApps$Category), mean)
 #names(catPaidRating) = c("Category", "Avg_rating")
 
-catPaidRating = paidApps %>% group_by(Category) %>% summarise( Avg_rating = mean(Rating)) %>% 
+catPaidRating = paidApps %>% group_by(Category) %>% dplyr::summarise( Avg_rating = mean(Rating)) %>% 
 arrange(desc(Avg_rating)) %>% mutate(Category = factor(Category, levels = unique(Category)))
 
 ggplot(catPaidRating, aes(x = Category, y = Avg_rating)) + 
