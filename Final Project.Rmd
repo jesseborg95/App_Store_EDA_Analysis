@@ -1,8 +1,10 @@
 ---
-title: "Description of Data"
-author: "Jonathan Giguere"
-date: "10/2/2019"
-output: html_document
+title: "DATS6101 Group Project: App Analysis"
+author: "Jonathan Giguere, Jesse Borg, Ese Emuraye, Sarah Gates"
+date: "October 23rd 2019"
+output:
+  html_document
+
 ---
 
 ```{r setup, include=FALSE}
@@ -29,17 +31,17 @@ library(car)
 
 ## Section 1: Introduction
 
-The popularity of smartphones has increased greatly every year since Apple released the Iphone in 2007, with approximately 10 billion [Statista](https://statista.com) smartphones sold worldwide since then. Of these 10 billion, Iphones account for almost 20% of sales with a total revenue of $165 billion in 2018 alone [CEO World Magazine](https://ceoworld.biz). Since the meteoric rise of the smartphone and tech industries, many app developers have taken the opportunity to develop their own apps for different operating systems and made them available to download on the appleStore and/or the Google playstore. Today, there are over 2.2 billion iOS apps [Lifewire](https://lifewire.com) and 2.7 billion apps on the Google playstore [Statista](https://statista.com). On average, people spend on around 3 hours on their phone each day [Hacker Noon](https://hackernoon.com); with the majority of time being spent on different apps. Due to the huge popularity of apps, there is a wide variety of genres available for every type of audience with a wide range of pricing. Since many people invest so much time and effort into apps, app data has become an interesting and relevant topic to conduct more research on. 
+The popularity of smartphones has increased greatly every year since Apple released the Iphone in 2007, with approximately 10 billion [Statista](https://statista.com) smartphones sold worldwide since then. Of these 10 billion; iPhones account for almost 20% of sales with a total revenue of $165 billion in 2018 alone [CEO World Magazine](https://ceoworld.biz). Since the meteoric rise of the smartphone and tech industries, many app developers have taken the opportunity to develop their own apps for different operating systems and made them available to download on the App Store and/or the Google Play Store. Today, there are over 2.2 billion iOS apps [Lifewire](https://lifewire.com) and 2.7 billion apps on the Google Play Store [Statista](https://statista.com). On average, people spend around 3 hours a day on their phones [Hacker Noon](https://hackernoon.com). Due to the huge popularity of apps, there is a wide variety of genres available for every type of audience with a wide range of pricing. Since many people invest so much time and effort into apps, app data has become an interesting and relevant topic to conduct more research on. 
 
-This report focuses mainly on a sample of apps from the appleStore, where the composition of this sample will be analysed in depth. The report itself will contain 6 additional chapters: Chapter 2 looks at the source data and the general composition of the dataset. Chapter 3 compares the apps in the appleStore to that in the Google playstore; chapter 4 looks at the different app categories; chapter 5 analyses the pricing of the apps and looks at the relationship between app pricing and popularity. Finally chapter 6 is the report conclusion where we report our findings based on the analysis.
+This report focuses mainly on a sample of apps from the Google Play Store, where the composition of this sample will be analysed in depth. The report itself will contain 6 additional chapters: Chapter 2 looks at the source data and the general composition of the dataset. Chapter 3 compares the apps in the App Store to that in the Google Play Store; chapter 4 looks at the different app categories; chapter 5 analyses the pricing of the apps and looks at the relationship between app pricing and popularity. Finally chapter 6 is the report conclusion where we report our findings based on the analysis.
 
 ## Section 2: Description of Data
 
-### 2.1 Source Data
+### 2.1 Discussion of Data Sources
 
-The source data for our EDA comes from two datasets that our team discovered on [Kaggle](https://www.kaggle.com).  The first dataset contains information about apps in the Google Play Store.  The second contains information about apps in the Apple App Store.  First, we will describe the data pertaining to the Google Play Store.
+The data for our EDA comes from two datasets that our team discovered on [Kaggle](https://www.kaggle.com).  The first dataset contains information about apps in the Google Play Store. The second contains information about apps in the App Store.  First, we will describe the data pertaining to the Google Play Store.
 
-#### Google Play Data Structure
+#### Google Play Store Data
 
 The Google Play Store dataset contains records for 10,840 different apps.  The variables, and their descriptions are given below:
 
@@ -54,7 +56,7 @@ The Google Play Store dataset contains records for 10,840 different apps.  The v
 * **Content_Rating** - Indicates which age groups the app is approved for
 * **Genres** - A further breakdown of the Category variable for each app
 * **Last Updated** - Date the app was last updated
-* **Current_Ver** - Current_Version of the app
+* **Current.Ver** - Current Version of the app
 
 ```{r import Google Play Data, echo=F}
 library("stringr")
@@ -65,71 +67,7 @@ googlePlay$Size <- str_remove(googlePlay$Size, 'M')
 str(googlePlay)
 ```
 
-
-### 2.2 Clean the Data
-
-Check how many null values are in the playstore data frame:
-```{r check NA, echo = F, include = T}
-
-# review how many fields are NA
-plotNA <- barplot(colSums(is.na(googlePlay)),
-                  col = "lightblue",
-                  main = "Playstore NA Values",
-                  ylab = "Count of Null Values",
-                  xlab = "App Categories")
-```
-
-
-```{r clean NA, echo = F, include = F}
-# create new data frame for apps where NA is null, then remove rating NAs from main playstore dataset
-ratingNA <- subset(googlePlay, is.na(Rating))
-googlePlay = na.omit(googlePlay)
-
-# to double check that the NAs have been removed
-sapply(googlePlay,function(x)sum(is.na(x)))
-```
-
-
-The only field with null values is Rating with 1474 missing values. We will store these values in a separate data frame in case we would like to do future analysis on this data. Then we will remove them from the main playstore dataset.
-
-
-Now we will check whether there are duplicates. We will do this by checking the difference between all and unique object.
-```{r check dups, echo = F, include = F}
-
-distinct <- nrow(googlePlay %>%
-  distinct(App))
-
-duplicates <- nrow(googlePlay) - distinct
-```
-There are `r duplicates` duplicates in the data. The next step is to remove duplicates from playstore.
-```{r remove dups, echo = F, include = F}
-
-googlePlay = googlePlay[!duplicated(googlePlay$App), ]
-
-
-# to double check that the duplicates have been removed
-distinct <- nrow(googlePlay %>%
-  distinct(App))
-
-nrow(googlePlay) - distinct
-```
-
-
-The only field with null values is Rating with 1474 missing values. We will store these values in a separate data frame in case we would like to do future analysis on this data. Then we will remove them from the main playstore dataset.
-
-
-
-
-Next, to clean the data we will change the Installs variable from a nominal categorical variable to an ordinal categorical variable. Installs is a variable buckets the range of the number of times an app has been installed. We will place the factor levels in order from least to greatest.
-
-```{r order installs, echo = F, include = F}
-
-factor(googlePlay$Installs, order = TRUE, 
-       levels = c("0", "0+", "1+", "5+", "10+", "50+", "100+", "500+", "1,000+", "5,000+", "10,000+", "50,000+", "100,000+", "500,000+", "1,000,000+", "5,000,000+", "10,000,000+", "50,000,000", "100,000,000+", "500,000,000+", "1,000,000,000+"))
-
-```
-
-#### Apple Store Data Structure
+#### Apple Store Data
 
 The Apple App Store dataset contains records for 7,197 different apps.  The variables, and their descriptions are given below:
 
@@ -155,9 +93,72 @@ appleStore$Size <- round(appleStore$Size/1000000, 0)
 str(appleStore)
 ```
 
-## Section 3: App Store Vs. Google Playstore
+### 2.2 Cleaning the Data
 
-Even though the Google Playstore is going to be analyzed in this report, a comparative analysis will be made between the App Store and Google Playstore. This will serve as a guide to the structure of each platform and provide a visual comparison between the two.
+#### 2.2.1 Removing Null Values
+
+First, we check how many null values are in the playstore data frame:
+```{r check NA, echo = F, include = T}
+
+# review how many fields are NA
+plotNA <- barplot(colSums(is.na(googlePlay)),
+                  col = "lightblue",
+                  main = "Playstore NA Values",
+                  ylab = "Count of Null Values",
+                  xlab = "App Categories",
+                  las = 2)
+                  
+```
+
+
+```{r clean NA, echo = F, include = F}
+# create new data frame for apps where NA is null, then remove rating NAs from main playstore dataset
+ratingNA <- subset(googlePlay, is.na(Rating))
+googlePlay = na.omit(googlePlay)
+
+# to double check that the NAs have been removed
+sapply(googlePlay,function(x)sum(is.na(x)))
+```
+
+The only field with null values is Rating with 1474 missing values. We will store these values in a separate data frame in case we would like to do future analysis on this data. Then we will remove them from the main playstore dataset.
+
+Now we will check whether there are duplicates. We will do this by checking the difference between all and unique object.
+```{r check dups, echo = F, include = F}
+
+distinct <- nrow(googlePlay %>%
+  distinct(App))
+
+duplicates <- nrow(googlePlay) - distinct
+```
+
+There are `r duplicates` duplicates in the data. The next step is to remove duplicates from playstore.
+
+```{r remove dups, echo = F, include = F}
+
+googlePlay = googlePlay[!duplicated(googlePlay$App), ]
+
+
+# to double check that the duplicates have been removed
+distinct <- nrow(googlePlay %>%
+  distinct(App))
+
+nrow(googlePlay) - distinct
+```
+
+The only field with null values is 'Rating', with 1474 missing values. We will store these values in a separate data frame in case we would like to do future analysis on this data. Then we will remove them from the main playstore dataset.
+
+Next, to clean the data we will change the Installs variable from a nominal categorical variable to an ordinal categorical variable. Installs is a variable buckets the range of the number of times an app has been installed. We will place the factor levels in order from least to greatest.
+
+```{r order installs, echo = F, include = F}
+
+factor(googlePlay$Installs, order = TRUE, 
+       levels = c("0", "0+", "1+", "5+", "10+", "50+", "100+", "500+", "1,000+", "5,000+", "10,000+", "50,000+", "100,000+", "500,000+", "1,000,000+", "5,000,000+", "10,000,000+", "50,000,000", "100,000,000+", "500,000,000+", "1,000,000,000+"))
+
+```
+
+## Section 3: Comparison of the App Store and Google Play Store
+
+Even though the Google Play Store is going to be analyzed in this report, a comparative analysis will be made between the App Store and the Google Playstore. This will serve as a guide to the structure of each platform and provide a visual comparison between the two.
 
 The appleStore dataset originally contained 7197 different apps whereas the Google Playstore originally contained 10840.  After the cleaning done in Section 2, the Google Playstore has 8892 records for different apps.
 
@@ -165,7 +166,7 @@ The appleStore dataset originally contained 7197 different apps whereas the Goog
 
 Here we can see that the Google Playstore has more variables of interest than the Apple Appstore.
 
-Google Playstore  | App Store   | 
+Google Play Store  | App Store   | 
 -----|-----|
 App |  App | 
 Category  | Category |  
@@ -176,7 +177,6 @@ Installs | *N/A* |
 Type |*N/A* | 
 Price | Price |
 Content.Rating | Content_Rating| 
-Genres | *N/A* |
 Last.Updated | *N/A* |  
 Current.Ver | Current_Ver |
 
@@ -324,7 +324,7 @@ Upon inspection of the visual created, we can see that some of the same apps dif
 
 ### 4.1 SMART Question
 
-Does app category have a correlation with rating and what app categories in the Googleplay have the highest priced apps?
+Does app category have a correlation with rating, which categories in the Google Play Store have the highest priced apps and which category has the most highly rated apps?
 
 ### 4.2 Category Analysis
 
@@ -341,15 +341,17 @@ ggplot(googlePlay, aes(Category)) +
         theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black'))
 ```
 
+### 4.3
+
 The highest rated categories on average are Events, Education and Art & Desgin, while the lowest rated categories are Maps & Navigation, Tools and Dating.
 
 ```{r bary, echo = F}
 catrating <- aggregate(googlePlay$Rating, list(googlePlay$Category), mean, na.rm = TRUE)
 names(catrating) <- c('Category', 'Avg_Rating')
 
-ggplot(catrating, aes(x = Category, y = Avg_Rating)) +
+ggplot(catrating, aes(x = reorder(Category, -Avg_Rating), y = Avg_Rating)) +
         geom_bar(stat = 'Identity', fill = viridis(33), color = 'black') +
-        ggtitle('Average Rating of Apps in the Google Playstore by Genre') +
+        ggtitle('Average Rating of Apps in the Google Playstore by Category') +
         ylab('Average Rating') +
         coord_cartesian(ylim = c(3.75, 4.5)) +
         theme_classic() +
@@ -365,10 +367,12 @@ head(catrating[order(catrating$Avg_Rating, decreasing = TRUE),], n = 5)
 
 
 Lowest Average Rating by Category
+
 ```{r bottom rating}
 tail(catrating[order(catrating$Avg_Rating, decreasing = TRUE),], n = 5)
 ```
 
+### 4.4
 ``` {r type2, include = F}
 free <- subset(googlePlay, googlePlay$Type == 'Free')
 paid <- subset(googlePlay, googlePlay$Type == 'Paid')
@@ -377,7 +381,7 @@ print(nrow(free))
 print(nrow(paid))
 ```
 
-Even though most of the apps in the Googleplaystore are free; with `r nrow(free)` free apps and `r nrow(paid)` apps. Out of those paid apps, the most expensive ones on average are Finance and Lifestyle apps by a long shot. 
+Even though most of the apps in the Google Play Store are free; with `r nrow(free)` free apps and `r nrow(paid)` paid apps. Out of those paid apps, the most expensive ones on average are Finance and Lifestyle apps by a long shot. 
 
 ```{r barx, echo = F}
 paid$Cost = as.numeric(gsub("\\$", "", paid$Price))
@@ -401,12 +405,12 @@ Highes Average Price by Category
 head(catprice[order(catprice$Avg_Price, decreasing = TRUE),], n = 5)
 ```
 
-### 4.3 Which app category in the Googleplaystore receives most high ratings?
+### 4.5 Which app category in the Google Play Store receives most high ratings?
 
-In this section, we would like to identify the most well rated app categories in the Googleplaystore. We define ‘most well rated’ as ratings that are greater or equal to 4.8. The score 4.8 is chosen because 95% of app ratings in the Googleplaystore are below 4.8. In other words, only 5% of the Googleplaystore apps have ratings that are greater or equal to 4.8. Therefore, the 95th percentile helps us to filter the best rated apps.
+In this section, we would like to identify the most well rated app categories in the Google Play Store. We define ‘most well rated’ as ratings that are greater or equal to 4.8. The score 4.8 is chosen because 95% of app ratings in the Google Play Store are below 4.8. In other words, only 5% of the Google Play Store apps have ratings that are greater or equal to 4.8. Therefore, the 95th percentile helps us to filter the best rated apps.
 
 ```{r hist2}
-hist(googlePlay$Rating, main = 'Histogram of frequency rating for the Google Playstore', xlab = 'Rating', col = viridis(20))
+hist(googlePlay$Rating, main = 'Histogram of frequency rating for the Google Play Store', xlab = 'Rating', col = viridis(20))
 ```
 
 ```{r percentile, include = F}
@@ -421,12 +425,12 @@ names(top_count) <- c('Category', 'Count')
 top_count <- top_count[order(top_count$Count, decreasing = TRUE),]
 ```
 
-To do this, a new subset was created from the Googleplaystore dataframe which only contained apps with a rating of 4.8 or greater. There are `r nrow(top_rated)` apps which fall within the highly rated threshold of 4.8. After this, the number of apps from each catergory within this subset was done using the count function. This count was then plotted into a bar chart to graphically demonstrate the distrubution of high ratings within different categories.
+To do this, a new subset was created from the Google Play Store dataframe which only contained apps with a rating of 4.8 or greater. There are `r nrow(top_rated)` apps which fall within the highly rated threshold of 4.8. After this, the number of apps from each catergory within this subset was done using the count function. This count was then plotted into a bar chart to graphically demonstrate the distrubution of high ratings within different categories.
 
 ```{r topplot}
 ggplot(top_count, aes(x = reorder(Category, -Count), y = Count)) +
         geom_bar(stat = 'Identity', fill = plasma(32), color = 'black') + 
-        ggtitle('Highly Rated Apps in the Google Playstore by Category') +
+        ggtitle('Highly Rated Apps in the Google Play Store by Category') +
         ylab('Total') +
         coord_cartesian(ylim = c(0,60)) +
         theme_bw() +
@@ -436,6 +440,7 @@ ggplot(top_count, aes(x = reorder(Category, -Count), y = Count)) +
 ```
 
 Catergories with the highest ratings are Family (by a large margin), then Medical, Lifestyle and Health & Fitness being very similar.
+
 ```{r topr}
 head(top_count[order(top_count$Count, decreasing = TRUE),], n = 5)
 ```
@@ -488,7 +493,7 @@ What kind of ratings does the different content rating categories have for both 
 How are free apps distributed by category
 ```{r d, echo = F}
 # create a dataframe sorted by count of category for free apps and plot
-freeAppsCount <- freeApps %>% group_by(Category) %>% dplyr::summarise(NumOfApps = n()) %>% arrange(desc(NumOfApps)) %>% mutate(Category = factor(Category, levels = unique(Category)))
+freeAppsCount <- freeApps %>% group_by(Category) %>% dplyr::summarise(NumOfApps = n()) %>% arrange(NumOfApps) %>% mutate(Category = factor(Category, levels = unique(Category)))
 freeAppsCount
 
  ggplot(freeAppsCount, aes(x=Category, y=NumOfApps)) +
@@ -500,6 +505,7 @@ freeAppsCount
   theme(plot.title = element_text(hjust = 0.5)) +
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black')) +
+  theme(axis.text.y = element_text(size = 8, color = 'black')) +
   coord_flip()
 
 ```
@@ -512,7 +518,7 @@ Top 5 Category for Free Apps
 ```{r echo = F}
 # create a dataframe sorted by count of category for paid apps and plot
 
-paidAppsCount <- paidApps %>% group_by(Category) %>% dplyr::summarise(NumOfApps = n()) %>% arrange(desc(NumOfApps)) %>% mutate(Category = factor(Category, levels = unique(Category)))
+paidAppsCount <- paidApps %>% group_by(Category) %>% dplyr::summarise(NumOfApps = n()) %>% arrange(NumOfApps) %>% mutate(Category = factor(Category, levels = unique(Category)))
 
 ggplot(paidAppsCount, aes(x = Category, y = NumOfApps)) +
   geom_bar(fill = viridis(28), color = 'black', stat = 'identity') +
@@ -523,6 +529,7 @@ ggplot(paidAppsCount, aes(x = Category, y = NumOfApps)) +
   theme(plot.title = element_text(hjust = 0.5)) +
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black')) +
+  theme(axis.text.y = element_text(size = 8, color = 'black')) +
   coord_flip()
 ```
 
@@ -540,8 +547,8 @@ catFreeRating = freeApps %>% group_by(Category) %>% dplyr::summarise( Avg_rating
 ggplot(catFreeRating, aes(x = Category, y = Avg_rating)) + 
   geom_bar(stat = 'Identity', fill = viridis(33), color = "black") +
   ggtitle("Average Rating of Free Apps by Category") +
-   ylab('Average Rating') +
-  coord_cartesian(ylim = c(1.5, 5.5)) +
+  ylab('Average Rating') +
+  coord_cartesian(ylim = c(3, 5)) +
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 9, color = 'black')) +
@@ -559,8 +566,8 @@ catPaidRating = paidApps %>% group_by(Category) %>% dplyr::summarise( Avg_rating
 ggplot(catPaidRating, aes(x = Category, y = Avg_rating)) + 
   geom_bar(stat = 'Identity', fill = viridis(28), color = "black") +
   ggtitle("Average Rating of Paid Apps by Category") +
-   ylab('Average Rating') +
-  coord_cartesian(ylim = c(1.5, 5.5)) +
+  ylab('Average Rating') +
+  coord_cartesian(ylim = c(3, 5)) +
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 9, color = 'black')) +
@@ -623,7 +630,7 @@ How are the apps distributed across different price categories
 # Plot bar chart showing the number of apps for different price categories
   ggplot(paidApps, aes(PriceCategory)) +
   geom_bar(fill = viridis(3), color = 'black') +
-  ggtitle('Free Apps in Google Playstore by Price Category') + 
+  ggtitle('Paid Apps in Google Playstore by Price Category') + 
   xlab('Price Category') + ylab('Number of Apps') + 
   coord_cartesian(ylim = c(0, 700)) + 
   theme_bw() +
