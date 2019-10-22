@@ -17,6 +17,7 @@ loadPkg = function(x) { if (!require(x,character.only=T, quietly =T)) { install.
 
 ```{r, packages, include = F}
 library(magrittr)
+library(corrplot)
 library(ggplot2)
 library(dplyr)
 library(viridis)
@@ -209,6 +210,7 @@ How do users rate free and paid apps across different categories
 # Create new dataframe and new column, assign categorical values of 0 and 1 for free and paid apps respectively   
   googlePlay_cat <- googlePlay[which(googlePlay$Price == 0.00 |googlePlay$Price != 0.00), ]
   googlePlay_cat$PriceCat <- factor(ifelse(googlePlay_cat$Price == 0.00, 0, 1), labels = c("Free", "Paid"))
+  
   ggplot(googlePlay_cat, aes(x = Category, y = Rating)) +
     geom_boxplot(fill=viridis(61)) +
     #ggtitle("Boxplot of User Rating by Genre across Free Vs Paid Apps")
@@ -219,7 +221,7 @@ How do users rate free and paid apps across different categories
     facet_grid(. ~ PriceCat)
 ```
 What kind of ratings does the different content rating categories have for both free and paid apps
-```{r }
+```{r echo=F}
   ggplot(googlePlay_cat, aes(x = Content.Rating, y = Rating)) +
       geom_boxplot(fill=viridis(10)) +
       ggtitle("Boxplot of User Rating by Content Rating across Free Vs Paid Apps")+
@@ -234,7 +236,7 @@ How are free apps distributed by category
 ```{r echo = F}
 # create a dataframe sorted by count of category for free apps and plot
  freeAppsCount <- freeApps %>% group_by(Category) %>% summarise(NumOfApps = n()) %>% arrange(desc(NumOfApps)) %>% mutate(Category = factor(Category, levels = unique(Category)))
-freeAppsCount
+
  ggplot(freeAppsCount, aes(x=Category, y=NumOfApps)) +
   geom_bar( fill = viridis(33), color = 'black', stat = 'identity') +
   ggtitle('Free Apps in the Google Playstore by Category') + 
@@ -243,19 +245,21 @@ freeAppsCount
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5)) +
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black'))
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black')) +
+  coord_flip()
 
 ```
 
 Top 5 Category for Free Apps
 
-```{r }
+```{r echo=F}
   head(freeAppsCount, n = 5)
 ```
 ```{r echo = F}
 # create a dataframe sorted by count of category for paid apps and plot
 
   paidAppsCount <- paidApps %>% group_by(Category) %>% summarise(NumOfApps = n()) %>% arrange(desc(NumOfApps)) %>% mutate(Category = factor(Category, levels = unique(Category)))
+
 ggplot(paidAppsCount, aes(x = Category, y = NumOfApps)) +
   geom_bar(fill = viridis(28), color = 'black', stat = 'identity') +
   ggtitle('Paid Apps in Google Playstore by Category') + 
@@ -264,15 +268,16 @@ ggplot(paidAppsCount, aes(x = Category, y = NumOfApps)) +
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5)) +
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black'))
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black')) +
+  coord_flip()
 ```
 
 Top 5 Category for Paid Apps
-```{r }
+```{r echo=F}
   head(paidAppsCount, n = 5)
 ```
 In the Playstore, apps are either free or paid. 
-What genre of apps are rated more in the free vs paid apps?
+What category of apps are rated more in the free vs paid apps?
 
 ```{r echo = F}
 # create new dataframe containing different categories and their respective average rating for free apps
@@ -293,9 +298,6 @@ ggplot(catFreeRating, aes(x = Category, y = Avg_rating)) +
 
 ```{r echo = F}
 # create new dataframe containing different categories and their respective average rating for paid apps
-#catPaidRating = aggregate(paidApps$Rating, list(paidApps$Category), mean)
-#names(catPaidRating) = c("Category", "Avg_rating")
-
 catPaidRating = paidApps %>% group_by(Category) %>% summarise( Avg_rating = mean(Rating)) %>% 
 arrange(desc(Avg_rating)) %>% mutate(Category = factor(Category, levels = unique(Category)))
 
@@ -313,17 +315,18 @@ ggplot(catPaidRating, aes(x = Category, y = Avg_rating)) +
 
 Do users rate free apps better than paid apps?
 Top 5 rated category in Free Apps 
-```{r }
-
-  head(catFreeRating, n = 10)
+```{r echo=F}
+# top rated categories for free apps 
+  head(catFreeRating, n = 5)
 ```
 
 Top 5 rated category in Paid Apps 
-```{r }
-
-  head(catPaidRating, n = 10)
+```{r echo=F}
+# top rated caetegories for paid apps
+  head(catPaidRating, n = 5)
 ```
 
+How is the content rating distributed between free and paid apps?
 ```{r echo = F}
 ggplot(freeApps, aes(Content.Rating)) +
   geom_bar(fill = viridis(6), color = 'black') +
@@ -340,10 +343,139 @@ ggplot(freeApps, aes(Content.Rating)) +
 ggplot(paidApps, aes(Content.Rating)) +
   geom_bar(fill = viridis(4), color = 'black') +
   ggtitle('Paid Apps in Google Playstore by Content Rating') + 
-  xlab('User Rating') + ylab('Number of Apps') + 
+  xlab('Content Rating') + ylab('Number of Apps') + 
   coord_cartesian(ylim = c(0, 1000)) + 
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5)) +
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black'))
+  theme(axis.text.x = element_text(angle = 0, hjust = 1, size = 8, color = 'black'))
+```
+
+
+
+
+```{r echo=F}
+# strip the dollar sign off the price and convert to numeric data type
+  paidApps$Price <- as.numeric(str_remove(paidApps$Price, '\\$'))
+
+# Create new column and a split price into different categories
+  paidApps$PriceCategory <- cut(paidApps$Price, breaks = c(0, 10, 100, 401), labels = c("Cheap", "Expensive", "Very Expensive"), right=FALSE)
+```
+
+
+How are the apps distributed across different price categories
+```{r echo=F}
+# Plot bar chart showing the number of apps for different price categories
+  ggplot(paidApps, aes(PriceCategory)) +
+  geom_bar(fill = viridis(3), color = 'black') +
+  ggtitle('Free Apps in Google Playstore by Price Category') + 
+  xlab('Price Category') + ylab('Number of Apps') + 
+  coord_cartesian(ylim = c(0, 700)) + 
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  theme(axis.text.x = element_text(angle = 0, hjust = 1, size = 8, color = 'black'))
+```
+What are the average ratings across different price categories
+```{r echo=F}
+# create a data frame, group by price category, calulate and sort by average rating
+  priceCatRating = paidApps %>% group_by(PriceCategory) %>% summarise( Avg_rating = mean(Rating)) %>% arrange(Avg_rating)
+
+# Plot bar chart showing the average rating for different price categories
+ggplot(priceCatRating, aes(x = PriceCategory, y = Avg_rating)) + 
+  geom_bar(stat = 'Identity', fill = viridis(3), color = "black") +
+  ggtitle("Average Rating of Paid Apps by Price Category") +
+   ylab('Average Rating') +
+   xlab('Price Category') +
+  coord_cartesian(ylim = c(1.5, 5.5)) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1, size = 9, color = 'black')) +
+  theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+```
+
+Are the average ratings the same across different price categories
+```{r echo=F}
+# Create dataframe and store Price Category and User Rating columns and perform anova
+    priceCatRating <- subset(paidApps, select = c("PriceCategory", "Rating"))
+    anovaRatingPrice <- aov(Rating ~ PriceCategory,  data=priceCatRating)
+    summary(anovaRatingPrice)
+    anovaRatPrice <- summary(anovaRatingPrice)
+    anovaRatPrice[[1]][[5]][[1]]
+```
+
+```{r echo = F}
+# Create a boxplot of user rating by different price categories
+ggplot(priceCatRating, aes(x = PriceCategory, y = Rating)) +
+      geom_boxplot(fill=viridis(3)) +
+      ggtitle("Boxplot of User Rating by Price Category")+
+      ylab("User Rating") +
+      xlab("Price Category") +
+      theme_bw() +
+      theme(plot.title = element_text(hjust = 0.5)) +
+      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+      theme(axis.text.x = element_text(angle = 0, hjust = 0.5, size = 10, color = 'black'))
+```
+
+Are the average installed apps the same across different price categories
+```{r echo=F}
+# clean installs column and cast to numeric
+    paidApps$Installs <- str_remove(paidApps$Installs, '\\+')
+    paidApps$Installs <- as.numeric(gsub(',','',paidApps$Installs))
+
+# Create dataframe and store Price Category and Installs columns and perform anova
+    priceCatInstalls <- subset(paidApps, select = c("PriceCategory", "Installs"))
+    anovaInstallsPrice <- aov(Installs ~ PriceCategory,  data=priceCatInstalls)
+    summary(anovaInstallsPrice)
+    anovaInstPrice <- summary(anovaInstallsPrice)
+    anovaInstPrice[[1]][[5]][[1]]
+```
+
+```{r echo=F}
+# Create a boxplot of apps installed by different price categories
+ggplot(priceCatInstalls, aes(x = PriceCategory, y = Installs)) +
+      geom_boxplot(fill=viridis(3)) +
+      ggtitle("Boxplot of Apps Installed by Price Category")+
+      ylab("Apps Installed") +
+      xlab("Price Category") +
+      theme_bw() +
+      theme(plot.title = element_text(hjust = 0.5)) +
+      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+      theme(axis.text.x = element_text(angle = 0, hjust = 0.5, size = 10, color = 'black'))
+```
+
+
+```{r echo = F}
+  lcpaidApps <- subset(paidApps, select = c("Rating", "Installs", "Price"))
+  str(lcpaidApps)
+```
+
+Get Correlation Matrix
+```{r echo=F}
+# Get correlation matrix for all numerical variables
+  paidAppsCor = cor(lcpaidApps)
+  corrplot(paidAppsCor, method = 'number')
+
+```
+
+Carry out fitting with linear models
+```{r echo=F}
+# fit the price to the rating
+  lm1 = lm(Rating ~ Price, data = lcpaidApps)
+  summary(lm1)
+  vif(lm1)
+```
+
+```{r echo=F}
+# fit the number of app installs to the rating
+  lm2 = lm(Rating ~ Installs, data = lcpaidApps)
+  summary(lm2)
+  vif(lm2)
+```
+
+```{r echo=F}
+# fit the price and number of app installs to the rating
+  lm3 = lm(Rating ~ Price+Installs, data = lcpaidApps)
+  summary(lm3)
+  vif(lm3)
 ```
