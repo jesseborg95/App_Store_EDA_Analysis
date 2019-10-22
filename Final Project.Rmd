@@ -308,7 +308,7 @@ Catergories with the highest ratings are Family (by a large margin), then Medica
 head(top_count[order(top_count$Count, decreasing = TRUE),], n = 5)
 ```
 
-Overall; the highest rated apps on average are in the events category, the most expensive apps are in the finance category and the category with the most highly rated apps are Family.
+Overall; the highest rated apps on average are in the Events category, the most expensive apps are in the Finance category and the category with the most highly rated apps are Family.
 
 ## Section 5: App Pricing
 
