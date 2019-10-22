@@ -270,7 +270,7 @@ Highes Average Price by Category
 head(catprice[order(catprice$Avg_Price, decreasing = TRUE),], n = 5)
 ```
 
-### 4.3 Which app category in the Googleplaystore receives most high ratings? (ratings >= 4.0)
+### 4.3 Which app category in the Googleplaystore receives most high ratings?
 
 In this section, we would like to identify the most well rated app categories in the Googleplaystore. We define ‘most well rated’ as ratings that are greater or equal to 4.8. The score 4.8 is chosen because 95% of app ratings in the Googleplaystore are below 4.8. In other words, only 5% of the Googleplaystore apps have ratings that are greater or equal to 4.8. Therefore, the 95th percentile helps us to filter the best rated apps.
 
