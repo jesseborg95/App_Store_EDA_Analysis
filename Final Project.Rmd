@@ -482,3 +482,118 @@ ggplot(paidApps, aes(Content.Rating)) +
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black'))
 ```
+
+
+## Section 6: Popularity Variable
+
+Create a popularity variable by combining rating, reviews, number of downloads?
+  - check for normality of rating and number of downloads separately
+  - look at correlation between rating and number of downloads
+      -need to convert to #
+  - standardize each then add together?
+
+Look at revenue
+
+### Section 6.1: SMART Question
+FINISH ME ONCE PURPOSE OF VARIABLE DETERMINED
+
+
+### Section 6.2: Basic Analysis of Rating and Installs
+
+```{r test, echo = F, include = F}
+
+googlePlay <- googlePlay %>%
+  mutate(
+    InstallsNum = gsub("\\+", "", as.character(Installs)),
+    InstallsNum = as.numeric(gsub(",", "", InstallsNum)),
+    Rating = as.numeric(Rating),
+    Reviews = as.numeric(Reviews)
+  )%>%
+  filter(
+    Type %in% c("Free", "Paid")
+  )
+
+extract = c("Rating","Reviews","InstallsNum")
+googlePlay.extract = googlePlay[extract]
+googlePlay.extract %>% 
+  filter(is.nan(googlePlay.extract$Reviews)) %>% 
+  filter(is.na(googlePlay.extract$InstallsNum)) %>%
+  filter(is.na(googlePlay.extract$Rating))
+
+
+```
+
+
+Correlation Plot
+```{r corrplot, echo = F, include = T}
+
+googlePlay.extract = na.omit(googlePlay.extract)
+cor_matrix = cor(googlePlay.extract)
+corrplot(cor_matrix,method = "color",order = "AOE",addCoef.col = "grey")
+
+# mtcarscor = cor(mtcars) # get the CORRELATION MATRIX between all numerical variables.
+# mtcarscor
+```
+
+
+Check the normality of the ratings data.
+```{r Rating Histogram, echo = F, include = T}
+
+ratingHist <- ggplot(googlePlay, aes(x = Rating)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white", binwidth = .2)+
+ geom_density(alpha=.2, fill="#FF6666") 
+
+ratingHist
+```
+
+Check the normality of the number of downloads data. First need to aggregate the buckets so that they are in log scale.
+
+```{r log scale aggregate, echo = F, include = F}
+
+googlePlay <- googlePlay %>%
+  mutate(InstallsLog = Installs)
+
+googlePlay$InstallsLog <- gsub("5","1", googlePlay$InstallsLog)
+
+googlePlay$InstallsLog <- factor(googlePlay$InstallsLog, order = TRUE, 
+       levels = c("0", "0+", "1+", "10+", "100+", "1,000+", "10,000+", "100,000+", "1,000,000+", "10,000,000+", "100,000,000+", "1,000,000,000+"))
+
+```
+
+NORMALITY ON A LOG SCALE?
+
+```{r Installs Histogram, echo = F, include = T}
+
+googlePlay %>% 
+  group_by(InstallsLog) %>% 
+  summarise(count = n()) %>%
+  suppressWarnings()
+
+
+installsHist <- ggplot(subset(googlePlay, !is.na(InstallsLog)), aes(x = InstallsLog)) + 
+ geom_bar(aes(y= ..count..), colour="black", fill="#AFEEEE", na.rm = TRUE)+
+ geom_density(alpha=.2, fill="#AFEEEE") +
+ theme(axis.text.x = element_text(angle = 50, hjust = 1))
+
+suppressWarnings(installsHist)
+```
+
+
+```{r standardize data, echo = F, include = F}
+
+standardize <- googlePlay %>%
+                  mutate(Installs = scale(InstallsNum)) %>%
+                  mutate(Rating = scale(Rating))
+
+head(standardize)
+```
+
+
+```{r scatterplot standardize, echo = F,include = T}
+
+scatterStandardize <- ggplot(standardize, aes(x = Rating, y = Installs)) +
+                          geom_point()
+
+scatterStandardize
+
+```
