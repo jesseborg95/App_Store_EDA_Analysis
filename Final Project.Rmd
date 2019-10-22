@@ -24,6 +24,7 @@ library(dplyr)
 library(viridis)
 library(viridisLite)
 library(corrplot)
+library(car)
 ```
 
 ## Section 1: Introduction
@@ -487,13 +488,9 @@ What kind of ratings does the different content rating categories have for both 
 How are free apps distributed by category
 ```{r d, echo = F}
 # create a dataframe sorted by count of category for free apps and plot
-<<<<<<< HEAD
- freeAppsCount <- freeApps %>% group_by(Category) %>% summarise(NumOfApps = n()) %>% arrange(desc(NumOfApps)) %>% mutate(Category = factor(Category, levels = unique(Category)))
-
-=======
 freeAppsCount <- freeApps %>% group_by(Category) %>% dplyr::summarise(NumOfApps = n()) %>% arrange(desc(NumOfApps)) %>% mutate(Category = factor(Category, levels = unique(Category)))
 freeAppsCount
->>>>>>> c4a25affc17e81f35fd56c53ea14ad2a8ddad6fc
+
  ggplot(freeAppsCount, aes(x=Category, y=NumOfApps)) +
   geom_bar( fill = viridis(33), color = 'black', stat = 'identity') +
   ggtitle('Free Apps in the Google Playstore by Category') + 
@@ -515,12 +512,8 @@ Top 5 Category for Free Apps
 ```{r echo = F}
 # create a dataframe sorted by count of category for paid apps and plot
 
-<<<<<<< HEAD
-  paidAppsCount <- paidApps %>% group_by(Category) %>% summarise(NumOfApps = n()) %>% arrange(desc(NumOfApps)) %>% mutate(Category = factor(Category, levels = unique(Category)))
+paidAppsCount <- paidApps %>% group_by(Category) %>% dplyr::summarise(NumOfApps = n()) %>% arrange(desc(NumOfApps)) %>% mutate(Category = factor(Category, levels = unique(Category)))
 
-=======
-  paidAppsCount <- paidApps %>% group_by(Category) %>% dplyr::summarise(NumOfApps = n()) %>% arrange(desc(NumOfApps)) %>% mutate(Category = factor(Category, levels = unique(Category)))
->>>>>>> c4a25affc17e81f35fd56c53ea14ad2a8ddad6fc
 ggplot(paidAppsCount, aes(x = Category, y = NumOfApps)) +
   geom_bar(fill = viridis(28), color = 'black', stat = 'identity') +
   ggtitle('Paid Apps in Google Playstore by Category') + 
@@ -542,8 +535,7 @@ What category of apps are rated more in the free vs paid apps?
 
 ```{r echo = F}
 # create new dataframe containing different categories and their respective average rating for free apps
-catFreeRating = freeApps %>% group_by(Category) %>% dplyr::summarise( Avg_rating = mean(Rating)) %>% 
-arrange(desc(Avg_rating)) %>% mutate(Category = factor(Category, levels = unique(Category)))
+catFreeRating = freeApps %>% group_by(Category) %>% dplyr::summarise( Avg_rating = mean(Rating)) %>% arrange(desc(Avg_rating)) %>% mutate(Category = factor(Category, levels = unique(Category)))
 
 ggplot(catFreeRating, aes(x = Category, y = Avg_rating)) + 
   geom_bar(stat = 'Identity', fill = viridis(33), color = "black") +
@@ -559,15 +551,10 @@ ggplot(catFreeRating, aes(x = Category, y = Avg_rating)) +
 
 ```{r echo = F}
 # create new dataframe containing different categories and their respective average rating for paid apps
-<<<<<<< HEAD
-catPaidRating = paidApps %>% group_by(Category) %>% summarise( Avg_rating = mean(Rating)) %>% 
-=======
 #catPaidRating = aggregate(paidApps$Rating, list(paidApps$Category), mean)
 #names(catPaidRating) = c("Category", "Avg_rating")
 
-catPaidRating = paidApps %>% group_by(Category) %>% dplyr::summarise( Avg_rating = mean(Rating)) %>% 
->>>>>>> c4a25affc17e81f35fd56c53ea14ad2a8ddad6fc
-arrange(desc(Avg_rating)) %>% mutate(Category = factor(Category, levels = unique(Category)))
+catPaidRating = paidApps %>% group_by(Category) %>% dplyr::summarise( Avg_rating = mean(Rating)) %>% arrange(desc(Avg_rating)) %>% mutate(Category = factor(Category, levels = unique(Category)))
 
 ggplot(catPaidRating, aes(x = Category, y = Avg_rating)) + 
   geom_bar(stat = 'Identity', fill = viridis(28), color = "black") +
@@ -616,7 +603,6 @@ ggplot(paidApps, aes(Content.Rating)) +
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5)) +
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-<<<<<<< HEAD
   theme(axis.text.x = element_text(angle = 0, hjust = 1, size = 8, color = 'black'))
 ```
 
@@ -732,14 +718,12 @@ Carry out fitting with linear models
 # fit the price to the rating
   lm1 = lm(Rating ~ Price, data = lcpaidApps)
   summary(lm1)
-  vif(lm1)
 ```
 
 ```{r echo=F}
 # fit the number of app installs to the rating
   lm2 = lm(Rating ~ Installs, data = lcpaidApps)
   summary(lm2)
-  vif(lm2)
 ```
 
 ```{r echo=F}
@@ -747,7 +731,6 @@ Carry out fitting with linear models
   lm3 = lm(Rating ~ Price+Installs, data = lcpaidApps)
   summary(lm3)
   vif(lm3)
-=======
   theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black'))
 ```
 
@@ -863,6 +846,4 @@ scatterStandardize <- ggplot(standardize, aes(x = Rating, y = Installs)) +
                           geom_point()
 
 scatterStandardize
-
->>>>>>> c4a25affc17e81f35fd56c53ea14ad2a8ddad6fc
 ```
