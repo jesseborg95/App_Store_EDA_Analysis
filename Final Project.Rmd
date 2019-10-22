@@ -278,9 +278,10 @@ In this section, we would like to identify the most well rated app categories in
 hist(googlePlay$Rating, main = 'Histogram of frequency rating for the Google Playstore', xlab = 'Rating', col = viridis(20))
 ```
 
-```{r percentile}
+```{r percentile, include = F}
 quantile(googlePlay$Rating, .95)
 ```
+According to the 95th percentile, the apps in the top 5% having a rating of 4.8 or higher.
 
 ```{r best rated}
 top_rated <- subset(googlePlay, googlePlay$Rating >= 4.8)
@@ -289,7 +290,7 @@ names(top_count) <- c('Category', 'Count')
 top_count <- top_count[order(top_count$Count, decreasing = TRUE),]
 ```
 
-To do this, a new subset was created from the Googleplaystore dataframe which only contained apps with a rating of 4.8 or greater. There are `r nrow(top_rated)`apps which fall within the highly rated threshold of 4.8. After this, the number of apps from each catergory within this subset was done using the count function. This count was then plotted into a bar chart to graphically demonstrate the distrubution of high ratings within different categories.
+To do this, a new subset was created from the Googleplaystore dataframe which only contained apps with a rating of 4.8 or greater. There are `r nrow(top_rated)` apps which fall within the highly rated threshold of 4.8. After this, the number of apps from each catergory within this subset was done using the count function. This count was then plotted into a bar chart to graphically demonstrate the distrubution of high ratings within different categories.
 
 ```{r topplot}
 ggplot(top_count, aes(x = reorder(Category, -Count), y = Count)) +
