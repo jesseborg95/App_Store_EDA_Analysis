@@ -10,6 +10,9 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_chunk$set(include = TRUE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(error = FALSE)
 ```
 
 ```{r basicfcn, include=F}
@@ -142,13 +145,16 @@ Our first step in cleaning the data is to identify null values. This chart displ
 ```{r check NA, echo = F, include = T}
 
 # review how many fields are NA
-plotNA <- barplot(colSums(is.na(googlePlay)),
-                  col = "lightblue",
-                  main = "Playstore NA Values",
-                  ylab = "Count of Null Values",
-                  xlab = "App Categories",
-                  las = 2)
-                  
+par(mar=c(5,6,4,2)+0.1)
+barplot(colSums(is.na(googlePlay)),
+  col = "lightblue",
+  main = "Playstore NA Values",
+  ylab = "Count of Null Values",
+  xlab = "",
+  las = 2,
+  cex.names = 0.7)
+
+title(xlab="App Category", line=4, cex.lab=1.2, family="Calibri Light")
 ```
 
 
@@ -820,13 +826,13 @@ With rating as the target varible, we experiment with different variables to obt
 
 ```{r include=F}
 # fit the number of app installs to the rating
-  lm2 = lm(Rating ~ Installs, data = lcpaidApps)
+  lm2 = lm(Rating ~ InstallsNum, data = lcpaidApps)
   summary(lm2)
 ```
 
 ```{r include=F}
 # fit the price and number of app installs to the rating
-  lm3 = lm(Rating ~ Price+Installs, data = lcpaidApps)
+  lm3 = lm(Rating ~ Price+InstallsNum, data = lcpaidApps)
   summary(lm3)
   vif(lm3)
 ```
@@ -906,7 +912,7 @@ suppressWarnings(installsHist)
 
 The ratings score was not normally distributed at all. That, plus it’s high correlation with number of installs, it should not be considered in the popularity score calculation.
 
-```{r Rating Histogram2, echo = F, include = T}
+```{r Rating Histogram2, include = T}
 
 reviewsHist <- ggplot(googlePlay, aes(x = Reviews)) + 
  geom_histogram(aes(y=..density..), colour="black", fill="#b19cd9")
