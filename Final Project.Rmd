@@ -23,7 +23,6 @@ library(plyr)
 library(dplyr)
 library(viridis)
 library(viridisLite)
-library(corrplot)
 ```
 
 ## Section 1: Introduction
@@ -156,168 +155,52 @@ str(appleStore)
 
 ## Section 3: App Store Vs. Google Playstore
 
-Even though the Google Playstore is going to be analyzed in this report, a comparative analysis will be made between the App Store and Google Playstore. This will serve as a guide to the structure of each platform and provide a visual comparison between the two.
+Even though the App Store is going to be analyzed in this report, a comparative analysis will be made before between the App Store and Google Playstore. This will serve as a guide to the structure of each platform and provide a visual comparison between the two.
 
-The appleStore dataset originally contained 7197 different apps whereas the Google Playstore originally contained 10840.  After the cleaning done in Section 2, the Google Playstore has 8892 records for different apps.
+The appleStore dataset contains 7197 different apps whereas the Google Playstore contains 10840.
 
-### 3.1 Variables comparison
+```{r merge}
 
-Here we can see that the Google Playstore has more variables of interest than the Apple Appstore.
+```
 
-Google Playstore  | App Store   | 
------|-----|
-App |  App | 
-Category  | Category |  
-Rating  | Rating |  
-Reviews |Reviews| 
-Size | Size| 
-Installs | *N/A* | 
-Type |*N/A* | 
-Price | Price |
-Content.Rating | Content_Rating| 
-Genres | *N/A* |
-Last.Updated | *N/A* |  
-Current.Ver | Current_Ver |
+### 3.1 Rating Composition
 
+```{r box1}
+df1 <- data.frame(appleStore$Price)
+df2 <- data.frame(googlePlay$Price)
+ggplot(appleStore, aes(y = Price)) +
+  geom_boxplot()
+```
 
 ### 3.2 Rating Distribution of Apps
 
-Rating will most likely be a response variable of interest later in our analysis so we begin our comparison of the two app stores by looking at the distributions of ratings for each.  
-
-```{r rating distributions for each}
-hist(googlePlay$Rating, main = 'Histogram of frequency rating for the Google Playstore', xlab = 'Rating', col = viridis(20),
-     xlim=c(0,5))
-hist(appleStore$Rating, main = 'Histogram of frequency rating for the Apple Store', xlab = 'Rating', col = viridis(12),
-     xlim=c(0, 5))
+```{r hist}
+hist(googlePlay$Rating, main = 'Histogram of frequency rating for the Google Playstore', xlab = 'Rating', col = viridis(20))
+hist(appleStore$Rating, main = 'Histogram of frequency rating for the Apple Store', xlab = 'Rating', col = viridis(12))
 ```
 
+### 3.3 Price Composition
 
-```{r Rating Mean and SD, echo=F, include=F}
-#Get average ratings for both stores
-avg_rating_google <- round(mean(googlePlay$Rating), 2)
-avg_rating_apple <- round(mean(appleStore$Rating), 2)
-
-#Get standard deviations of ratings for both stores
-sd_rating_google <- round(sd(googlePlay$Rating), 2)
-sd_rating_apple <- round(sd(appleStore$Rating), 2)
-
-avg_rating_google
-avg_rating_apple
-
-sd_rating_google
-sd_rating_apple
+```{r box2}
 ```
 
-Upon inspection of the frequency distributions for each, we can see that neither is normally distributed and both are left skewed favoring higher rating.  Due to the non-normal distributions, a two-sample t-test cannot be performed to evaluate the relationship between average ratings in each store.  Instead we have simply calculated the mean and standard deviation of each for further comparison.
+### 3.4 Free Vs. Paid
 
- Statistic |Google Playstore  | App Store   | 
-----|-----|-----|
- Mean|  `r avg_rating_google` | `r avg_rating_apple` |
-Standard Deviation| `r sd_rating_google`  | `r sd_rating_apple` |  
+```{r pie}
+#appleStore$Type <- factor(ifelse(appleStore$Price == 0.00, 0, 1), labels = c('Free', 'Paid'))
 
-We notice that The Google Playstore has a higher average rating for its apps than the Apple Appstore.  We also notice that the variation in rating is lower in the Google Playstore.  Some of this phenemenon could be attributed to the fact that the Google Playstore has ratings in incremencts of 0.1 while the Apple Appstore used increments of 0.5.
+#ggplot(appleStore, aes(x = " ", y=Type, fill = Type)) +
+  #geom_bar(stat = "identity") +
+  #ggtitle('Price Composition of Apps in the Appstore') +
+  #coord_polar("y", start=0) +
+  #theme_void()
 
-### 3.3 Apps in Both Datasets
-
-```{r # of reviews exploration, echo=F, include=F}
-#find common apps in both datasets
-a <-intersect(googlePlay$App, appleStore$App)
-
-#subset new dataframes that contain the common apps in each store
-googleCommon <- googlePlay[googlePlay$App %in% a, ]
-
-#Remove duplicate app records
-googleCommon <- distinct(googleCommon, App, .keep_all = T)
-
-appleCommon <- appleStore[appleStore$App %in% a, ]
-
-#Number of apps in common
-length(appleCommon$X)
-length(googleCommon$App)
+#ggplot(googlePlay, aes(x = " ", y=Type, fill = Type)) +
+  #geom_bar(stat = "identity") +
+  #ggtitle('Price Composition of Apps in the Google Playstore') +
+  #coord_polar("y", start=0) +
+  #theme_void()
 ```
-After using the intersect() function to compare App names in both stores, there are a total of **`r length(appleCommon$X)`** apps in common.  Now that we have dataframes containing common apps in both stores, we can revisit our ratings histogram to get a better idea of which store rates higher on average.  
-
-```{r ratings histogram-common apps}
-hist(googleCommon$Rating, main = 'Histogram of frequency rating for the Google Playstore', xlab = 'Rating', col = viridis(20),
-     xlim=c(0,5))
-hist(appleCommon$Rating, main = 'Histogram of frequency rating for the Apple Store', xlab = 'Rating', col = viridis(12),
-     xlim=c(0,5))
-```
-
-Once again, the histograms are left skewed and not normally distributed so performing a two-sided t-test would be inappropriate here.  As such we have calculated mean and standard deviation of each below and compared it to the mean and standard deviation from above where all apps are considered.
-
-```{r Rating Mean and SD for common, echo=F, include=F}
-#Get average ratings for both stores
-avg_rating_common_google <- round(mean(googleCommon$Rating), 2)
-avg_rating_common_apple <- round(mean(appleCommon$Rating), 2)
-
-#Get standard deviations of ratings for both stores
-sd_rating_common_google <- round(sd(googleCommon$Rating), 2)
-sd_rating_common_apple <- round(sd(appleCommon$Rating), 2)
-
-avg_rating_common_google
-avg_rating_common_apple
-
-sd_rating_common_google
-sd_rating_common_apple
-```
-
- Statistic |Google Playstore  | App Store   | 
-----|-----|-----|
- Mean (All Apps Inlcuded) |  `r avg_rating_common_google` | `r avg_rating_common_apple` |
- Mean (Common Apps) |  `r avg_rating_google` | `r avg_rating_apple` |
-Standard Deviation (All Apps Inlcuded) | `r sd_rating_google`  | `r sd_rating_apple` |
-Standard Deviation (Common Apps) | `r sd_rating_common_google`  | `r sd_rating_common_apple` |
-
-Once again, the Google Playstore has higher average ratings and than the Apple Appstore and less variation.
-
-### 3.3 Apps in Both Datasets - Price Comparison
-
-Before selecting one dataset to analyze further, we thought it would be wise to look at price comparisons between the two in case there are differences.  In order to do so, we combined our dataframes consisting of all apps found in both stores.  This allowed us to create a bar chart showing the sum of Price for each store for all **`r length(appleCommon$X)`** apps.  
-
-```{r get new dataframe to make price boxplots}
-googleCommonBoxplot <- googleCommon
-#Add column of 1s to identify google store
-googleCommonBoxplot$StoreType <- as.factor(rep(1, nrow(googleCommonBoxplot)))
-#Select only columns needed for boxplots
-googleCommonBoxplot <- select(googleCommonBoxplot, c(App, Price, StoreType))
-#Change price from factor to character bc cannot go straight to num
-googleCommonBoxplot$Price <- as.character(googleCommonBoxplot$Price)
-#Now drop dollar sign and convert to numeric
-googleCommonBoxplot$Price <- as.numeric(gsub("\\$", "", googleCommonBoxplot$Price))
-
-
-appleCommonBoxplot <- appleCommon
-#Add column of 0s to identify apple store
-appleCommonBoxplot$StoreType <- as.factor(rep(0, nrow(appleCommonBoxplot)))
-#Select only columns needed for boxplots
-appleCommonBoxplot <- select(appleCommonBoxplot, c(App, Price, StoreType))
-
-#Put the dataframes together
-price_compare_DF <- rbind(googleCommonBoxplot, appleCommonBoxplot)
-```
-
-```{r Make barchart}
-x_labels <- c()
-
-ggplot(price_compare_DF, aes(x=StoreType, y=Price, fill=StoreType)) +
-  geom_col() +
-  coord_flip() +
-  labs(x='Store: 0=Apple, 1=Google', y='Price $ USD') +
-  ggtitle("Total Cost of Common Apps") +
-  theme(legend.position = 'none', plot.title = element_text(hjust = 0.5))
-
-#Uncomment to check apple price sum
-#apple_sub <- price_compare_DF[price_compare_DF$StoreType==0, ]
-#sum(apple_sub$Price)
-
-#Uncomment to check Google price sum
-#google_sub <- price_compare_DF[price_compare_DF$StoreType==1, ]
-#sum(google_sub$Price)
-
-```
-
-Upon inspection of the visual created, we can see that some of the same apps differ in price depending which store they are in.  Based on the **`r length(appleCommon$X)`** apps the original datasets have in common, it would be more expensive to purchase all of them on the Apple app store.  This could mean that the Apple app store is more expensive.
 
 ## Section 4: App Categories
 
@@ -472,6 +355,7 @@ How do users rate free and paid apps across different categories
     theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 6, color = 'black')) +
     facet_grid(. ~ PriceCat)
 ```
+
 What kind of ratings does the different content rating categories have for both free and paid apps
 ```{r echo=F}
   ggplot(googlePlay_cat, aes(x = Content.Rating, y = Rating)) +
@@ -487,13 +371,8 @@ What kind of ratings does the different content rating categories have for both 
 How are free apps distributed by category
 ```{r d, echo = F}
 # create a dataframe sorted by count of category for free apps and plot
-<<<<<<< HEAD
- freeAppsCount <- freeApps %>% group_by(Category) %>% summarise(NumOfApps = n()) %>% arrange(desc(NumOfApps)) %>% mutate(Category = factor(Category, levels = unique(Category)))
-
-=======
 freeAppsCount <- freeApps %>% group_by(Category) %>% dplyr::summarise(NumOfApps = n()) %>% arrange(desc(NumOfApps)) %>% mutate(Category = factor(Category, levels = unique(Category)))
-freeAppsCount
->>>>>>> c4a25affc17e81f35fd56c53ea14ad2a8ddad6fc
+
  ggplot(freeAppsCount, aes(x=Category, y=NumOfApps)) +
   geom_bar( fill = viridis(33), color = 'black', stat = 'identity') +
   ggtitle('Free Apps in the Google Playstore by Category') + 
@@ -515,12 +394,9 @@ Top 5 Category for Free Apps
 ```{r echo = F}
 # create a dataframe sorted by count of category for paid apps and plot
 
-<<<<<<< HEAD
-  paidAppsCount <- paidApps %>% group_by(Category) %>% summarise(NumOfApps = n()) %>% arrange(desc(NumOfApps)) %>% mutate(Category = factor(Category, levels = unique(Category)))
 
-=======
   paidAppsCount <- paidApps %>% group_by(Category) %>% dplyr::summarise(NumOfApps = n()) %>% arrange(desc(NumOfApps)) %>% mutate(Category = factor(Category, levels = unique(Category)))
->>>>>>> c4a25affc17e81f35fd56c53ea14ad2a8ddad6fc
+
 ggplot(paidAppsCount, aes(x = Category, y = NumOfApps)) +
   geom_bar(fill = viridis(28), color = 'black', stat = 'identity') +
   ggtitle('Paid Apps in Google Playstore by Category') + 
@@ -559,15 +435,8 @@ ggplot(catFreeRating, aes(x = Category, y = Avg_rating)) +
 
 ```{r echo = F}
 # create new dataframe containing different categories and their respective average rating for paid apps
-<<<<<<< HEAD
-catPaidRating = paidApps %>% group_by(Category) %>% summarise( Avg_rating = mean(Rating)) %>% 
-=======
-#catPaidRating = aggregate(paidApps$Rating, list(paidApps$Category), mean)
-#names(catPaidRating) = c("Category", "Avg_rating")
 
-catPaidRating = paidApps %>% group_by(Category) %>% dplyr::summarise( Avg_rating = mean(Rating)) %>% 
->>>>>>> c4a25affc17e81f35fd56c53ea14ad2a8ddad6fc
-arrange(desc(Avg_rating)) %>% mutate(Category = factor(Category, levels = unique(Category)))
+catPaidRating = paidApps %>% group_by(Category) %>% dplyr::summarise( Avg_rating = mean(Rating)) %>% arrange(desc(Avg_rating)) %>% mutate(Category = factor(Category, levels = unique(Category)))
 
 ggplot(catPaidRating, aes(x = Category, y = Avg_rating)) + 
   geom_bar(stat = 'Identity', fill = viridis(28), color = "black") +
@@ -616,7 +485,6 @@ ggplot(paidApps, aes(Content.Rating)) +
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5)) +
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-<<<<<<< HEAD
   theme(axis.text.x = element_text(angle = 0, hjust = 1, size = 8, color = 'black'))
 ```
 
@@ -747,7 +615,6 @@ Carry out fitting with linear models
   lm3 = lm(Rating ~ Price+Installs, data = lcpaidApps)
   summary(lm3)
   vif(lm3)
-=======
   theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black'))
 ```
 
@@ -863,6 +730,4 @@ scatterStandardize <- ggplot(standardize, aes(x = Rating, y = Installs)) +
                           geom_point()
 
 scatterStandardize
-
->>>>>>> c4a25affc17e81f35fd56c53ea14ad2a8ddad6fc
 ```
