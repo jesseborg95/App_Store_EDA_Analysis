@@ -138,7 +138,7 @@ str(appleStore)
 
 #### 2.2.1 Removing Null Values
 
-First, we check how many null values are in the playstore data frame:
+Our first step in cleaning the data is to identify null values. This chart displays the count of null values in each category of the Google Play Store dataset. The only field with null values is Rating with 1474 missing values. We will store these values in a separate data frame in case we would like to do future analysis on this data. Then we will remove them from the main googlePlay dataset.
 ```{r check NA, echo = F, include = T}
 
 # review how many fields are NA
@@ -153,6 +153,7 @@ plotNA <- barplot(colSums(is.na(googlePlay)),
 
 
 ```{r clean NA, echo = F, include = F}
+
 # create new data frame for apps where NA is null, then remove rating NAs from main playstore dataset
 ratingNA <- subset(googlePlay, is.na(Rating))
 googlePlay = na.omit(googlePlay)
@@ -161,41 +162,80 @@ googlePlay = na.omit(googlePlay)
 sapply(googlePlay,function(x)sum(is.na(x)))
 ```
 
-The only field with null values is Rating with 1474 missing values. We will store these values in a separate data frame in case we would like to do future analysis on this data. Then we will remove them from the main playstore dataset.
 
-Now we will check whether there are duplicates. We will do this by checking the difference between all and unique object.
-```{r check dups, echo = F, include = F}
+### 2.2.2 Remove Duplicate Values
 
+Now we will check whether there are duplicates. We will do this by checking the difference between all app names and all values. At first, when we looked at all unique rows in the Google Play Store dataset, some apps still had multiple lines. This is most likely because of conflicting values in other variables. To remove this noise, we will narrow the data down to only unique app names and remove duplicate apps. There are `r duplicates` duplicates in the data. The next step is to remove duplicates from playstore.
+```{r identify dups, echo = F, include = F}
+
+# count of unique app names exist in the Google Play Store dataset
 distinct <- nrow(googlePlay %>%
   distinct(App))
 
 duplicates <- nrow(googlePlay) - distinct
 ```
 
-There are `r duplicates` duplicates in the data. The next step is to remove duplicates from playstore.
-
 ```{r remove dups, echo = F, include = F}
 
+# remove rows with duplicate app names
 googlePlay = googlePlay[!duplicated(googlePlay$App), ]
 
 
-# to double check that the duplicates have been removed
+# double check that the duplicates have been removed
 distinct <- nrow(googlePlay %>%
   distinct(App))
 
 nrow(googlePlay) - distinct
 ```
 
-The only field with null values is 'Rating', with 1474 missing values. We will store these values in a separate data frame in case we would like to do future analysis on this data. Then we will remove them from the main playstore dataset.
+
+### 2.2.3 Clean up Installs variable
 
 Next, to clean the data we will change the Installs variable from a nominal categorical variable to an ordinal categorical variable. Installs is a variable buckets the range of the number of times an app has been installed. We will place the factor levels in order from least to greatest.
 
 ```{r order installs, echo = F, include = F}
 
-factor(googlePlay$Installs, order = TRUE, 
+googlePlay$Installs <- factor(googlePlay$Installs, order = TRUE, 
        levels = c("0", "0+", "1+", "5+", "10+", "50+", "100+", "500+", "1,000+", "5,000+", "10,000+", "50,000+", "100,000+", "500,000+", "1,000,000+", "5,000,000+", "10,000,000+", "50,000,000", "100,000,000+", "500,000,000+", "1,000,000,000+"))
 
 ```
+
+```{r test, echo = F, include = F}
+
+# create InstallsNum, which creates a new column from Installs and changes it to a numeric type
+googlePlay <- googlePlay %>%
+  mutate(
+    InstallsNum = gsub("\\+", "", as.character(Installs)),
+    InstallsNum = as.numeric(gsub(",", "", InstallsNum)),
+    Rating = as.numeric(Rating),
+    Reviews = as.numeric(Reviews)
+  )%>%
+  filter(
+    Type %in% c("Free", "Paid")
+  )
+
+extract = c("Rating","Reviews","InstallsNum")
+googlePlay.extract = googlePlay[extract]
+googlePlay.extract %>% 
+  filter(is.nan(googlePlay.extract$Reviews)) %>% 
+  filter(is.na(googlePlay.extract$InstallsNum)) %>%
+  filter(is.na(googlePlay.extract$Rating))
+```
+
+```{r log scale aggregate, echo = F, include = F}
+
+# reates InstallsLog
+
+googlePlay <- googlePlay %>%
+  mutate(InstallsLog = Installs)
+
+googlePlay$InstallsLog <- gsub("5","1", googlePlay$InstallsLog)
+
+googlePlay$InstallsLog <- factor(googlePlay$InstallsLog, order = TRUE, 
+       levels = c("0", "0+", "1+", "10+", "100+", "1,000+", "10,000+", "100,000+", "1,000,000+", "10,000,000+", "100,000,000+", "1,000,000,000+"))
+
+```
+
 
 ## Section 3: Comparison of the App Store and Google Play Store
 
@@ -794,60 +834,44 @@ Price | `r format( lm1$coefficients['Price'] ) ` (vif: 1) | ---------- | `r form
 Installs | | `r format( lm2$coefficients['Installs'] ) ` (vif: 1 ) | `r format( lm3$coefficients['Installs'] ) ` (vif: 1.000552) | 
 | | | p:`r format( summary(lm2)$coefficients[,4]['Installs']) ` | p:`r format( summary(lm3)$coefficients[,4]['Installs'])` |  
 
-## Section 6: Popularity Variable
-
-Create a popularity variable by combining rating, reviews, number of downloads?
-  - check for normality of rating and number of downloads separately
-  - look at correlation between rating and number of downloads
-      -need to convert to #
-  - standardize each then add together?
-
-Look at revenue
-
-### Section 6.1: SMART Question
-FINISH ME ONCE PURPOSE OF VARIABLE DETERMINED
+## Section 7: Conclusion & Key Takeaways
 
 
-### Section 6.2: Basic Analysis of Rating and Installs
+### Section 7.1: Reflection on EDA 
 
-```{r test, echo = F, include = F}
+Throughout our EDA process, we have derived many useful insights from the Google Play Store dataset. To provide context of its current position in the market, we compared it with Apple’s App Store data and concluded that Google Play Store apps have higher ratings with a lower standard deviation than Apple’s apps. This phenomenon could be further explored but with the caveat that the users of each app source could have very different qualities and would thus be incomplete without analyzing user data as well.
 
-googlePlay <- googlePlay %>%
-  mutate(
-    InstallsNum = gsub("\\+", "", as.character(Installs)),
-    InstallsNum = as.numeric(gsub(",", "", InstallsNum)),
-    Rating = as.numeric(Rating),
-    Reviews = as.numeric(Reviews)
-  )%>%
-  filter(
-    Type %in% c("Free", "Paid")
-  )
+Shifting attention to solely the Google Play Store data, our next section broke out ratings and price information by app category. It was interesting to see that the highest rated apps were in the Events category and that the lowest rated were in the Dating category. Finance and Lifestyle apps were by far the most expensive. When zeroing in on apps in the 95th rating percentile (4.8 or higher), the Family category came out on top.
+We then analyzed… 
 
-extract = c("Rating","Reviews","InstallsNum")
-googlePlay.extract = googlePlay[extract]
-googlePlay.extract %>% 
-  filter(is.nan(googlePlay.extract$Reviews)) %>% 
-  filter(is.na(googlePlay.extract$InstallsNum)) %>%
-  filter(is.na(googlePlay.extract$Rating))
+[APP PRICING]
+
+[CORRELATION AND LINEAR MODELS]
 
 
-```
+### Section 7.2: Brainstorming for Future Data Utilization
+
+When brainstorming possible future applications for our findings, we thought it would be useful to create a new variable related to popularity of an app. By combining user input variables into a score, we could apply this score to a prediction. 
+
+Reviewing the correlation of user input data (Rating, Installs, and Reviews), we found that the number of installs and reviews are highly correlated. This makes sense because the more installs an app has, the more opportunity it has to be rated by a user.
 
 
-Correlation Plot
+
 ```{r corrplot, echo = F, include = T}
+
+# Correlation plot between rating, reviews, and installs
 
 googlePlay.extract = na.omit(googlePlay.extract)
 cor_matrix = cor(googlePlay.extract)
 corrplot(cor_matrix,method = "color",order = "AOE",addCoef.col = "grey")
-
-# mtcarscor = cor(mtcars) # get the CORRELATION MATRIX between all numerical variables.
-# mtcarscor
 ```
 
 
-Check the normality of the ratings data.
+To test whether rating would be viable to contribute to the score, we checked to see if it is normally distributed. While left skewed, the distribution displays a curve with otherwise mostly normal qualities.
+
 ```{r Rating Histogram, echo = F, include = T}
+
+# Ratings histogram
 
 ratingHist <- ggplot(googlePlay, aes(x = Rating)) + 
  geom_histogram(aes(y=..density..), colour="black", fill="white", binwidth = .2)+
@@ -856,21 +880,8 @@ ratingHist <- ggplot(googlePlay, aes(x = Rating)) +
 ratingHist
 ```
 
-Check the normality of the number of downloads data. First need to aggregate the buckets so that they are in log scale.
+Looking at the Installs distribution presents a challenge. The scale is logarithmic with intervals at 10, 50, 100, 500, and so on. By bucketing the fives into their most previous ones, we can put the intervals in log10 buckets which are more straightforward to analyze. We can see that this distribution is fairly normal while slightly left skewed as well.
 
-```{r log scale aggregate, echo = F, include = F}
-
-googlePlay <- googlePlay %>%
-  mutate(InstallsLog = Installs)
-
-googlePlay$InstallsLog <- gsub("5","1", googlePlay$InstallsLog)
-
-googlePlay$InstallsLog <- factor(googlePlay$InstallsLog, order = TRUE, 
-       levels = c("0", "0+", "1+", "10+", "100+", "1,000+", "10,000+", "100,000+", "1,000,000+", "10,000,000+", "100,000,000+", "1,000,000,000+"))
-
-```
-
-NORMALITY ON A LOG SCALE?
 
 ```{r Installs Histogram, echo = F, include = T}
 
@@ -888,21 +899,17 @@ installsHist <- ggplot(subset(googlePlay, !is.na(InstallsLog)), aes(x = Installs
 suppressWarnings(installsHist)
 ```
 
+The ratings score was not normally distributed at all. That, plus it’s high correlation with number of installs, it should not be considered in the popularity score calculation.
 
-```{r standardize data, echo = F, include = F}
+```{r Rating Histogram, echo = F, include = T}
 
-standardize <- googlePlay %>%
-                  mutate(Installs = scale(InstallsNum)) %>%
-                  mutate(Rating = scale(Rating))
+reviewsHist <- ggplot(googlePlay, aes(x = Reviews)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="#b19cd9")
 
-head(standardize)
+suppressWarnings(reviewsHist)
 ```
 
 
-```{r scatterplot standardize, echo = F,include = T}
+### Section 7.3: Key Takeaways and Going Forward
 
-scatterStandardize <- ggplot(standardize, aes(x = Rating, y = Installs)) +
-                          geom_point()
-
-scatterStandardize
-```
+Although a popularity score would be interesting, its application for predictions is a question of usefulness. This user input data is retrospective at best and could not be used in the application of predicting the outcomes for a brand-new app on the market. The data in the Google Play Store is interesting to visualize comparisons between different categories, prices, ratings, etc. However, with low correlation between variables and insignificant p values observed in section 6 make it difficult if not impossible for utilizing this data for a predictive model. Additional data needed for each app that could be useful would be related to user attributes or activity to perhaps determine what kind of ads to target by app category or to create an algorithm to suggest other aps they might find useful based on preferences.
