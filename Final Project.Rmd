@@ -158,13 +158,14 @@ factor(googlePlay$Installs, order = TRUE,
 
 ## Section 3: Comparison of the App Store and Google Play Store
 
-Even though the Google Play Store is going to be analyzed in this report, a comparative analysis will be made between the App Store and the Google Playstore. This will serve as a guide to the structure of each platform and provide a visual comparison between the two.
+We will begin our analysis by comparing both the App Store and the Google Play Store datasets.  After comparing both data sources, we will select one to use for further in depth analysis.
 
-The appleStore dataset originally contained 7197 different apps whereas the Google Playstore originally contained 10840.  After the cleaning done in Section 2, the Google Playstore has 8892 records for different apps.
+The App Store dataset originally contained 7197 different apps whereas the Google Play Store originally contained 10840.  After the cleaning was performed, the Google Play Store has 8196 records for different apps.
 
-### 3.1 Variables comparison
+### 3.1 SMART Question
+#### Are there any variables present in one dataset that do not exist in the other?
 
-Here we can see that the Google Playstore has more variables of interest than the Apple Appstore.
+Here we can see that the Google Play Store has more variables of interest than the App Store.  The App Store does not have a variable for number of installs, which is something we might want to use in our analysis.
 
 Google Play Store  | App Store   | 
 -----|-----|
@@ -181,14 +182,15 @@ Last.Updated | *N/A* |
 Current.Ver | Current_Ver |
 
 
-### 3.2 Rating Distribution of Apps
+### 3.2 SMART Question
+#### How do users rate apps in each app store?
 
 Rating will most likely be a response variable of interest later in our analysis so we begin our comparison of the two app stores by looking at the distributions of ratings for each.  
 
 ```{r rating distributions for each}
-hist(googlePlay$Rating, main = 'Histogram of frequency rating for the Google Playstore', xlab = 'Rating', col = viridis(20),
+hist(googlePlay$Rating, main = 'Frequency of Ratings for the Google Play Store', xlab = 'Rating', col = viridis(20),
      xlim=c(0,5))
-hist(appleStore$Rating, main = 'Histogram of frequency rating for the Apple Store', xlab = 'Rating', col = viridis(12),
+hist(appleStore$Rating, main = 'Frequency of Ratings for the App Store', xlab = 'Rating', col = viridis(12),
      xlim=c(0, 5))
 ```
 
@@ -211,14 +213,15 @@ sd_rating_apple
 
 Upon inspection of the frequency distributions for each, we can see that neither is normally distributed and both are left skewed favoring higher rating.  Due to the non-normal distributions, a two-sample t-test cannot be performed to evaluate the relationship between average ratings in each store.  Instead we have simply calculated the mean and standard deviation of each for further comparison.
 
- Statistic |Google Playstore  | App Store   | 
+ Statistic |Google Play Store  | App Store   | 
 ----|-----|-----|
  Mean|  `r avg_rating_google` | `r avg_rating_apple` |
 Standard Deviation| `r sd_rating_google`  | `r sd_rating_apple` |  
 
-We notice that The Google Playstore has a higher average rating for its apps than the Apple Appstore.  We also notice that the variation in rating is lower in the Google Playstore.  Some of this phenemenon could be attributed to the fact that the Google Playstore has ratings in incremencts of 0.1 while the Apple Appstore used increments of 0.5.
+We notice that the Google Play Store has a higher average rating for its apps than the App Store.  We also notice that the variation in rating is lower in the Google Play Store.  Some of this phenemenon could be attributed to the fact that the Google Play Store has ratings in increments of 0.1 while the App Store uses increments of 0.5.
 
-### 3.3 Apps in Both Datasets
+### 3.3 SMART Question
+#### How many apps are available in both app stores and how do their ratings compare?
 
 ```{r # of reviews exploration, echo=F, include=F}
 #find common apps in both datasets
@@ -236,16 +239,16 @@ appleCommon <- appleStore[appleStore$App %in% a, ]
 length(appleCommon$X)
 length(googleCommon$App)
 ```
-After using the intersect() function to compare App names in both stores, there are a total of **`r length(appleCommon$X)`** apps in common.  Now that we have dataframes containing common apps in both stores, we can revisit our ratings histogram to get a better idea of which store rates higher on average.  
+After using the intersect() function to compare app names in both stores, there are a total of **`r length(appleCommon$X)`** apps in common.  Now that we have dataframes containing common apps in both stores, we can revisit our ratings histogram to get a better idea of which store rates higher on average.  
 
 ```{r ratings histogram-common apps}
-hist(googleCommon$Rating, main = 'Histogram of frequency rating for the Google Playstore', xlab = 'Rating', col = viridis(20),
-     xlim=c(0,5))
-hist(appleCommon$Rating, main = 'Histogram of frequency rating for the Apple Store', xlab = 'Rating', col = viridis(12),
-     xlim=c(0,5))
+#hist(googleCommon$Rating, main = 'Histogram of frequency rating for the Google Playstore', xlab = 'Rating', col = viridis(20),
+     #xlim=c(0,5))
+#hist(appleCommon$Rating, main = 'Histogram of frequency rating for the Apple Store', xlab = 'Rating', col = viridis(12),
+     #xlim=c(0,5))
 ```
 
-Once again, the histograms are left skewed and not normally distributed so performing a two-sided t-test would be inappropriate here.  As such we have calculated mean and standard deviation of each below and compared it to the mean and standard deviation from above where all apps are considered.
+Upon inspection, the histograms (not pictured for brevity) were left skewed and not normally distributed so performing a two-sided t-test would be inappropriate here.  As such, we have calculated the mean and standard deviation of each below and compared it to the mean and standard deviation from above where all apps were considered.
 
 ```{r Rating Mean and SD for common, echo=F, include=F}
 #Get average ratings for both stores
@@ -263,24 +266,25 @@ sd_rating_common_google
 sd_rating_common_apple
 ```
 
- Statistic |Google Playstore  | App Store   | 
+ Statistic |Google Play Store  | App Store   | 
 ----|-----|-----|
  Mean (All Apps Inlcuded) |  `r avg_rating_common_google` | `r avg_rating_common_apple` |
  Mean (Common Apps) |  `r avg_rating_google` | `r avg_rating_apple` |
 Standard Deviation (All Apps Inlcuded) | `r sd_rating_google`  | `r sd_rating_apple` |
 Standard Deviation (Common Apps) | `r sd_rating_common_google`  | `r sd_rating_common_apple` |
 
-Once again, the Google Playstore has higher average ratings and than the Apple Appstore and less variation.
+Once again, the Google Play Store has higher average ratings and than the App Store and less variation.  This tells us that for the exact same apps present in both stores, they tend to be rated higher in the Google Play Store.
 
-### 3.3 Apps in Both Datasets - Price Comparison
+### 3.4 SMART Question
+#### Is one store more expensive than the other?
 
-Before selecting one dataset to analyze further, we thought it would be wise to look at price comparisons between the two in case there are differences.  In order to do so, we combined our dataframes consisting of all apps found in both stores.  This allowed us to create a bar chart showing the sum of Price for each store for all **`r length(appleCommon$X)`** apps.  
+Before selecting one dataset to analyze further, we thought it would be wise to look at price comparisons between the two in case there are differences.  In order to do so, we combined our dataframes consisting of all apps found in both stores.  This allowed us to create a bar chart showing the sum of Price for each store for all shared apps.  
 
 ```{r get new dataframe to make price boxplots}
 googleCommonBoxplot <- googleCommon
 #Add column of 1s to identify google store
 googleCommonBoxplot$StoreType <- as.factor(rep(1, nrow(googleCommonBoxplot)))
-#Select only columns needed for boxplots
+#Select only columns needed for barchart
 googleCommonBoxplot <- select(googleCommonBoxplot, c(App, Price, StoreType))
 #Change price from factor to character bc cannot go straight to num
 googleCommonBoxplot$Price <- as.character(googleCommonBoxplot$Price)
@@ -291,7 +295,7 @@ googleCommonBoxplot$Price <- as.numeric(gsub("\\$", "", googleCommonBoxplot$Pric
 appleCommonBoxplot <- appleCommon
 #Add column of 0s to identify apple store
 appleCommonBoxplot$StoreType <- as.factor(rep(0, nrow(appleCommonBoxplot)))
-#Select only columns needed for boxplots
+#Select only columns needed for barchart
 appleCommonBoxplot <- select(appleCommonBoxplot, c(App, Price, StoreType))
 
 #Put the dataframes together
@@ -299,14 +303,15 @@ price_compare_DF <- rbind(googleCommonBoxplot, appleCommonBoxplot)
 ```
 
 ```{r Make barchart}
-x_labels <- c()
 
-ggplot(price_compare_DF, aes(x=StoreType, y=Price, fill=StoreType)) +
+ggplot(price_compare_DF, aes(x=StoreType, y=Price, fill = StoreType)) +
   geom_col() +
   coord_flip() +
-  labs(x='Store: 0=Apple, 1=Google', y='Price $ USD') +
-  ggtitle("Total Cost of Common Apps") +
-  theme(legend.position = 'none', plot.title = element_text(hjust = 0.5))
+  labs(y='Price $ USD') +
+  ggtitle("Total Cost of Apps for Apps Found in Both Stores") +
+  theme(legend.position = 'none', plot.title = element_text(hjust = 0.5), axis.title.y = element_blank()) +
+  scale_x_discrete(labels=c("0" = "App Store", "1" = "Google Play Store")) +
+  scale_fill_manual("legend", values=c("0"="aquamarine4", "1"="aquamarine3"))
 
 #Uncomment to check apple price sum
 #apple_sub <- price_compare_DF[price_compare_DF$StoreType==0, ]
@@ -318,7 +323,8 @@ ggplot(price_compare_DF, aes(x=StoreType, y=Price, fill=StoreType)) +
 
 ```
 
-Upon inspection of the visual created, we can see that some of the same apps differ in price depending which store they are in.  Based on the **`r length(appleCommon$X)`** apps the original datasets have in common, it would be more expensive to purchase all of them on the Apple app store.  This could mean that the Apple app store is more expensive.
+Upon inspection of the chart, we can see that some of the same apps differ in price depending which store they are in.  Based on the apps the original datasets have in common, it would be more expensive to purchase all of them from the App Store.  This could mean that the Apple App Store is more expensive, or at least it is for the apps present in our sample.  
+
 
 ## Section 4: App Categories
 
