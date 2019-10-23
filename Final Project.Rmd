@@ -162,10 +162,8 @@ googlePlay = na.omit(googlePlay)
 sapply(googlePlay,function(x)sum(is.na(x)))
 ```
 
-
 ### 2.2.2 Remove Duplicate Values
 
-Now we will check whether there are duplicates. We will do this by checking the difference between all app names and all values. At first, when we looked at all unique rows in the Google Play Store dataset, some apps still had multiple lines. This is most likely because of conflicting values in other variables. To remove this noise, we will narrow the data down to only unique app names and remove duplicate apps. There are `r duplicates` duplicates in the data. The next step is to remove duplicates from playstore.
 ```{r identify dups, echo = F, include = F}
 
 # count of unique app names exist in the Google Play Store dataset
@@ -174,6 +172,8 @@ distinct <- nrow(googlePlay %>%
 
 duplicates <- nrow(googlePlay) - distinct
 ```
+
+Now we will check whether there are duplicates. We will do this by checking the difference between all app names and all values. At first, when we looked at all unique rows in the Google Play Store dataset, some apps still had multiple lines. This is most likely because of conflicting values in other variables. To remove this noise, we will narrow the data down to only unique app names and remove duplicate apps. There are `r duplicates` duplicates in the data. The next step is to remove duplicates from playstore.
 
 ```{r remove dups, echo = F, include = F}
 
@@ -264,6 +264,7 @@ Current.Ver | Current_Ver |
 
 
 ### 3.2 SMART Question
+
 #### How do users rate apps in each app store?
 
 Rating will most likely be a response variable of interest later in our analysis so we begin our comparison of the two app stores by looking at the distributions of ratings for each.  
@@ -618,22 +619,20 @@ ggplot(catPaidRating, aes(x = Category, y = Avg_rating)) +
 ```
 
 # 5.3 Do users rate free apps better than paid apps?
-Top 5 rated category in Free Apps 
+
+Top 5 rated category in Free Apps
+
 ```{r echo=F}
 # top rated categories for free apps 
   top5free <- head(catFreeRating, n = 5)
 ```
 
-`r top5free`
+Top 5 rated category in Paid Apps
 
-
-Top 5 rated category in Paid Apps 
 ```{r echo=F}
 # top rated caetegories for paid apps
   top5paid <- head(catPaidRating, n = 5)
 ```
-
-`r top5paid`
 
 ### 5.4 How do users rate apps across different content rating for free and paid apps
 
@@ -901,7 +900,7 @@ suppressWarnings(installsHist)
 
 The ratings score was not normally distributed at all. That, plus it’s high correlation with number of installs, it should not be considered in the popularity score calculation.
 
-```{r Rating Histogram, echo = F, include = T}
+```{r Rating Histogram2, echo = F, include = T}
 
 reviewsHist <- ggplot(googlePlay, aes(x = Reviews)) + 
  geom_histogram(aes(y=..density..), colour="black", fill="#b19cd9")
