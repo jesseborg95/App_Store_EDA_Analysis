@@ -189,9 +189,9 @@ nrow(googlePlay) - distinct
 ```
 
 
-### 2.2.3 Clean up Installs variable
+### 2.2.3 Clean up Variables for Analysis
 
-Next, to clean the data we will change the Installs variable from a nominal categorical variable to an ordinal categorical variable. Installs is a variable buckets the range of the number of times an app has been installed. We will place the factor levels in order from least to greatest.
+Next, to clean the data we will change the Installs variable from a nominal categorical variable to an ordinal categorical variable. Installs is a variable buckets the range of the number of times an app has been installed in log intervals of 1, 5, 10, 50, 100, 500, etc. We will place the factor levels in order from least to greatest. Then we will create two new variables that deal with further cleaning of Installs. InstallsNum strips the commas and "+" signs from the values so that the value can be converted to a number. Lastly regarding the Installs data, InstallsLog keeps Installs as a factor, but reassigns the values starting with 5 to its' most previous 1 value so that they can be bucketed into a coherent log10 scale.
 
 ```{r order installs, echo = F, include = F}
 
@@ -224,7 +224,7 @@ googlePlay.extract %>%
 
 ```{r log scale aggregate, echo = F, include = F}
 
-# reates InstallsLog
+# creates InstallsLog
 
 googlePlay <- googlePlay %>%
   mutate(InstallsLog = Installs)
@@ -233,8 +233,28 @@ googlePlay$InstallsLog <- gsub("5","1", googlePlay$InstallsLog)
 
 googlePlay$InstallsLog <- factor(googlePlay$InstallsLog, order = TRUE, 
        levels = c("0", "0+", "1+", "10+", "100+", "1,000+", "10,000+", "100,000+", "1,000,000+", "10,000,000+", "100,000,000+", "1,000,000,000+"))
+```
+
+
+
+Since the price variable is a nominal factor in the original dataset, we must clean this up as well. We will now convert the price to a numeric by stripping the dollar sign and changing the variable type. Then for further analysis, we will create a new column called Price Categories and bucket the prices into Cheap, Expensive, and Very Expensive (0 to 10, 10+ to 100, 100+ and greater respectively). This will be further expanded upon in section five.
+
+``` {r type, echo = F}
+# Create two new dataframes for free and paid apps separately
+freeApps <- subset(googlePlay, googlePlay$Price == 0.00)
+paidApps <- subset(googlePlay, googlePlay$Price != 0.00)
 
 ```
+
+```{r echo=F}
+# clean price column and split into categories
+# strip the dollar sign off the price and convert to numeric data type
+  paidApps$Price <- as.numeric(str_remove(paidApps$Price, '\\$'))
+
+# Create new column and a split price into different categories
+  paidApps$PriceCategory <- cut(paidApps$Price, breaks = c(0, 10, 100, 401), labels = c("Cheap", "Expensive", "Very Expensive"), right=FALSE)
+```
+
 
 
 ## Section 3: Comparison of the App Store and Google Play Store
@@ -555,12 +575,7 @@ Overall; the highest rated apps on average are in the Events category, the most 
 
 ### 5.1 SMART QUESTION: How does the price influence the distribution of apps across category, rating and content rating
 
-``` {r type, echo = F}
-# Create two new dataframes for free and paid apps separately
-freeApps <- subset(googlePlay, googlePlay$Price == 0.00)
-paidApps <- subset(googlePlay, googlePlay$Price != 0.00)
 
-```
 
 There are `r nrow(freeApps)` free apps and `r nrow(paidApps)` paid apps corresponding to `r format((nrow(freeApps)/nrow(googlePlay))*100, digits=3)`% and `r format((nrow(paidApps)/nrow(googlePlay))*100, digits=3)`% respectively in Google playstore 
 
@@ -705,14 +720,6 @@ ggplot(paidAppsCount, aes(x = Category, y = NumOfApps)) +
 
 The price of apps is divided into categories, with the price range $0.99 - $9.99, $10 - $99.99 and $100 - $400 corresponding to cheap, expensive and very expensive respectively
 
-```{r echo=F}
-# clean price column and split into categories
-# strip the dollar sign off the price and convert to numeric data type
-  paidApps$Price <- as.numeric(str_remove(paidApps$Price, '\\$'))
-
-# Create new column and a split price into different categories
-  paidApps$PriceCategory <- cut(paidApps$Price, breaks = c(0, 10, 100, 401), labels = c("Cheap", "Expensive", "Very Expensive"), right=FALSE)
-```
 
 ```{r echo=F}
 # Plot bar chart showing the number of apps for different price categories
@@ -733,7 +740,7 @@ The price of apps is divided into categories, with the price range $0.99 - $9.99
 
 ```{r echo=F}
 # create a data frame, group by price category, calulate and sort by average rating
-  priceCatRating = paidApps %>% group_by(PriceCategory) %>% summarise( Avg_rating = mean(Rating)) %>% arrange(Avg_rating)
+priceCatRating = paidApps %>% group_by(PriceCategory) %>% summarise( Avg_rating = mean(Rating)) %>% arrange(Avg_rating)
 
 # Plot bar chart showing the average rating for different price categories
 ggplot(priceCatRating, aes(x = PriceCategory, y = Avg_rating)) + 
@@ -794,7 +801,7 @@ We obtain the correlation matrix using the numerical variables
   paidApps$Installs <- as.numeric(gsub(',','',paidApps$Installs))
 
 # create dataframe and store numerical variables
-  lcpaidApps <- subset(paidApps, select = c("Rating", "Installs", "Price"))
+  lcpaidApps <- subset(paidApps, select = c("Rating", "InstallsNum", "Price"))
 
 # Get correlation matrix for all numerical variables
   paidAppsCor = cor(lcpaidApps)
@@ -853,7 +860,6 @@ We then analyzed…
 When brainstorming possible future applications for our findings, we thought it would be useful to create a new variable related to popularity of an app. By combining user input variables into a score, we could apply this score to a prediction. 
 
 Reviewing the correlation of user input data (Rating, Installs, and Reviews), we found that the number of installs and reviews are highly correlated. This makes sense because the more installs an app has, the more opportunity it has to be rated by a user.
-
 
 
 ```{r corrplot, echo = F, include = T}
