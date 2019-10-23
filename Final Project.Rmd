@@ -341,9 +341,9 @@ ggplot(googlePlay, aes(Category)) +
         theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black'))
 ```
 
-### 4.3
+### 4.3 Categories by Rating
 
-The highest rated categories on average are Events, Education and Art & Desgin, while the lowest rated categories are Maps & Navigation, Tools and Dating.
+To find the highest and lowest rated categories, the ratings were aggregated according to the app category and the mean was then found for each category. Once the means were found, they were then plotted and a conclusion was drawn.
 
 ```{r bary, echo = F}
 catrating <- aggregate(googlePlay$Rating, list(googlePlay$Category), mean, na.rm = TRUE)
@@ -372,7 +372,11 @@ Lowest Average Rating by Category
 tail(catrating[order(catrating$Avg_Rating, decreasing = TRUE),], n = 5)
 ```
 
-### 4.4
+The highest rated categories on average are Events, Education and Art & Desgin, while the lowest rated categories are Maps & Navigation, Tools and Dating.
+
+### 4.4 Categories by Price
+
+To get the average price of each category, a new subset was created which just contained the paid apps. Then, similarly to the previous section, the prices were aggregated according to the category, the means were calculated and then plotted.
 ``` {r type2, include = F}
 free <- subset(googlePlay, googlePlay$Type == 'Free')
 paid <- subset(googlePlay, googlePlay$Type == 'Paid')
@@ -380,8 +384,6 @@ paid <- subset(googlePlay, googlePlay$Type == 'Paid')
 print(nrow(free))
 print(nrow(paid))
 ```
-
-Even though most of the apps in the Google Play Store are free; with `r nrow(free)` free apps and `r nrow(paid)` paid apps. Out of those paid apps, the most expensive ones on average are Finance and Lifestyle apps by a long shot. 
 
 ```{r barx, echo = F}
 paid$Cost = as.numeric(gsub("\\$", "", paid$Price))
@@ -405,6 +407,8 @@ Highes Average Price by Category
 head(catprice[order(catprice$Avg_Price, decreasing = TRUE),], n = 5)
 ```
 
+Even though most of the apps in the Google Play Store are free; with `r nrow(free)` free apps and `r nrow(paid)` paid apps. Out of those paid apps, the most expensive ones on average are Finance and Lifestyle apps by a long shot. 
+
 ### 4.5 Which app category in the Google Play Store receives most high ratings?
 
 In this section, we would like to identify the most well rated app categories in the Google Play Store. We define ‘most well rated’ as ratings that are greater or equal to 4.8. The score 4.8 is chosen because 95% of app ratings in the Google Play Store are below 4.8. In other words, only 5% of the Google Play Store apps have ratings that are greater or equal to 4.8. Therefore, the 95th percentile helps us to filter the best rated apps.
@@ -425,13 +429,14 @@ names(top_count) <- c('Category', 'Count')
 top_count <- top_count[order(top_count$Count, decreasing = TRUE),]
 ```
 
-To do this, a new subset was created from the Google Play Store dataframe which only contained apps with a rating of 4.8 or greater. There are `r nrow(top_rated)` apps which fall within the highly rated threshold of 4.8. After this, the number of apps from each catergory within this subset was done using the count function. This count was then plotted into a bar chart to graphically demonstrate the distrubution of high ratings within different categories.
+To find the categories containing the most apps with a rating of 4.8 or greater, a new subset was created from the Google Play Store dataframe which only contained apps with a rating of 4.8 or greater. There are `r nrow(top_rated)` apps which fall within the highly rated threshold of 4.8. After this, the number of apps from each catergory within this subset was found using the count function. This count was then plotted into a bar chart to graphically demonstrate the distrubution of highly rated apps within different categories.
 
 ```{r topplot}
 ggplot(top_count, aes(x = reorder(Category, -Count), y = Count)) +
         geom_bar(stat = 'Identity', fill = plasma(32), color = 'black') + 
         ggtitle('Highly Rated Apps in the Google Play Store by Category') +
         ylab('Total') +
+        xlab('Category') +
         coord_cartesian(ylim = c(0,60)) +
         theme_bw() +
         theme(plot.title = element_text(hjust = 0.5)) + 
@@ -439,11 +444,13 @@ ggplot(top_count, aes(x = reorder(Category, -Count), y = Count)) +
         theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 ```
 
-Catergories with the highest ratings are Family (by a large margin), then Medical, Lifestyle and Health & Fitness being very similar.
+Categories with the most highly rated apps.
 
 ```{r topr}
 head(top_count[order(top_count$Count, decreasing = TRUE),], n = 5)
 ```
+
+Catergories with the highest ratings are Family (by a large margin), then Lifestyle, Medical and Health & Fitness being very similar.
 
 Overall; the highest rated apps on average are in the Events category, the most expensive apps are in the Finance category and the category with the most highly rated apps are Family.
 
