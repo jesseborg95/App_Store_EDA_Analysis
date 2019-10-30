@@ -74,7 +74,7 @@ outlierKD <- function(dt, var, rmv=NULL) {
 }
 ```
 
-Google Play Dataset Structure
+#### Google Play Dataset Structure
 
 ```{r import Google Play Data, echo=F}
 library("stringr")
@@ -84,7 +84,7 @@ googlePlay$Size <- str_remove(googlePlay$Size, 'M')
 str(googlePlay)
 ```
 
-Apple Store Dataset Structure
+#### Apple Store Dataset Structure
 
 ```{r import Apple Store Data, echo=F}
 appleStore <- read.csv('applestore.csv')
@@ -100,7 +100,7 @@ str(appleStore)
 ```
 
 
-Graph of NA Values
+#### Graph of NA Values
 
 ```{r check NA, echo = F, include = T}
 
@@ -207,6 +207,7 @@ paidApps <- subset(googlePlay, googlePlay$Price != 0.00)
   paidApps$PriceCategory <- cut(paidApps$Price, breaks = c(0, 10, 100, 401), labels = c("Cheap", "Expensive", "Very Expensive"), right=FALSE)
 ```
 
+#### Frequency of Ratings for the Google Play Store and App Store
 
 ```{r rating distributions for each}
 hist(googlePlay$Rating, main = 'Frequency of Ratings for the Google Play Store', xlab = 'Rating', col = viridis(20),
@@ -292,6 +293,8 @@ appleCommonBoxplot <- select(appleCommonBoxplot, c(App, Price, StoreType))
 #Put the dataframes together
 price_compare_DF <- rbind(googleCommonBoxplot, appleCommonBoxplot)
 ```
+
+#### Total Cost (per store) of the 328 Apps Found in Both Stores
 
 ```{r Make barchart}
 
