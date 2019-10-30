@@ -1,5 +1,5 @@
 ---
-title: "DATS6101 Group Project: App Analysis"
+title: "DATS6101 Group Project: App Analysis - EDA"
 author: "Jonathan Giguere, Jesse Borg, Ese Emuraye, Sarah Gates"
 date: "October 23rd 2019"
 output:
@@ -74,55 +74,17 @@ outlierKD <- function(dt, var, rmv=NULL) {
 }
 ```
 
-## Section 1: Introduction
-
-The popularity of smartphones has increased greatly every year since Apple released the Iphone in 2007, with approximately 10 billion [Statista](https://statista.com) smartphones sold worldwide since then. Of these 10 billion; iPhones account for almost 20% of sales with a total revenue of $165 billion in 2018 alone [CEO World Magazine](https://ceoworld.biz). Since the meteoric rise of the smartphone and tech industries, many app developers have taken the opportunity to develop their own apps for different operating systems and made them available to download on the App Store and/or the Google Play Store. Today, there are over 2 million iOS apps [Lifewire](https://lifewire.com) and 2.5 million apps on the Google Play Store [Statista](https://statista.com). On average, people spend around 3 hours a day on their phones [Hacker Noon](https://hackernoon.com). Due to the huge popularity of apps, there is a wide variety of genres available for every type of audience with a wide range of pricing. Since many people invest so much time and effort into apps, app data has become an interesting and relevant topic to conduct more research on. 
-
-This report focuses mainly on a sample of apps from the Google Play Store, where the composition of this sample will be analysed in depth. The report itself will contain 6 additional chapters: Chapter 2 looks at the source data and the general composition of the dataset. Chapter 3 compares the apps in the App Store to that in the Google Play Store; chapter 4 looks at the different app categories; chapter 5 analyses the pricing of the apps and looks at the relationship between app pricing and popularity. Finally chapter 6 is the report conclusion where we report our findings based on the analysis.
-
-## Section 2: Description of Data
-
-### 2.1 Discussion of Data Sources
-
-The data for our EDA comes from two datasets that our team discovered on [Kaggle](https://www.kaggle.com).  The first dataset contains information about apps in the Google Play Store. The second contains information about apps in the App Store.  First, we will describe the data pertaining to the Google Play Store.
-
-#### Google Play Store Data
-
-The Google Play Store dataset contains records for 10,840 different apps.  The variables, and their descriptions are given below:
-
-* **App** - The name of the application
-* **Category** - The category that the app belongs in
-* **Rating** - The current app rating on a scale from 1 to 5 (1 being the lowest)
-* **Reviews** - The number of reviews for the app
-* **Size** - Size of the app given in MB
-* **Installs** - Number of installs given as categories (ex. 10,000+)
-* **Type** - Tells which apps are free and which require payment
-* **Price** - Gives the Price for each app
-* **Content_Rating** - Indicates which age groups the app is approved for
-* **Last Updated** - Date the app was last updated
-* **Current.Ver** - Current Version of the app
+Google Play Dataset Structure
 
 ```{r import Google Play Data, echo=F}
 library("stringr")
-# setwd("/Users/jonathangiguere/Desktop/DATS 6101/Projects/Project 1/Data-Science-Project-Final-master")
 googlePlay <- read.csv('googleplaystore.csv')
 googlePlay <- subset(googlePlay, select = -c(Android.Ver, Genres) )
 googlePlay$Size <- str_remove(googlePlay$Size, 'M')
 str(googlePlay)
 ```
 
-#### Apple Store Data
-
-The Apple App Store dataset contains records for 7,197 different apps.  The variables, and their descriptions are given below:
-
-* **App** - The name of the application
-* **Category** - The category that the app belongs in
-* **Rating** - The current app rating on a scale from 1 to 5 (1 being the lowest)
-* **Reviews** - The number of reviews for the app
-* **Size** - Size of the app given in MB
-* **Price** - Gives the Price for each app
-* **Content_Rating** - Indicates which age groups the app is approved for
-* **Current_Ver** - Current_Version of the app
+Apple Store Dataset Structure
 
 ```{r import Apple Store Data, echo=F}
 appleStore <- read.csv('applestore.csv')
@@ -137,11 +99,9 @@ appleStore$Size <- round(appleStore$Size/1000000, 0)
 str(appleStore)
 ```
 
-### 2.2 Cleaning the Data
 
-#### 2.2.1 Removing Null Values
+Graph of NA Values
 
-Our first step in cleaning the data is to identify null values. This chart displays the count of null values in each category of the Google Play Store dataset. The only field with null values is Rating with 1474 missing values. We will store these values in a separate data frame in case we would like to do future analysis on this data. Then we will remove them from the main googlePlay dataset.
 ```{r check NA, echo = F, include = T}
 
 # review how many fields are NA
@@ -166,7 +126,6 @@ googlePlay = na.omit(googlePlay)
 sapply(googlePlay,function(x)sum(is.na(x)))
 ```
 
-### 2.2.2 Remove Duplicate Values
 
 ```{r identify dups, echo = F, include = F}
 
@@ -176,8 +135,6 @@ distinct <- nrow(googlePlay %>%
 
 duplicates <- nrow(googlePlay) - distinct
 ```
-
-Now we will check whether there are duplicates. We will do this by checking the difference between all app names and all values. At first, when we looked at all unique rows in the Google Play Store dataset, some apps still had multiple lines. This is most likely because of conflicting values in other variables. To remove this noise, we will narrow the data down to only unique app names and remove duplicate apps. There are `r duplicates` duplicates in the data. The next step is to remove duplicates from playstore.
 
 ```{r remove dups, echo = F, include = F}
 
@@ -191,10 +148,6 @@ distinct <- nrow(googlePlay %>%
 
 nrow(googlePlay) - distinct
 ```
-
-### 2.2.3 Clean up Variables for Analysis
-
-Next, to clean the data we will change the Installs variable from a nominal categorical variable to an ordinal categorical variable. Installs is a variable buckets the range of the number of times an app has been installed in log intervals of 1, 5, 10, 50, 100, 500, etc. We will place the factor levels in order from least to greatest. Then we will create two new variables that deal with further cleaning of Installs. InstallsNum strips the commas and "+" signs from the values so that the value can be converted to a number. Lastly regarding the Installs data, InstallsLog keeps Installs as a factor, but reassigns the values starting with 5 to its' most previous 1 value so that they can be bucketed into a coherent log10 scale.
 
 ```{r order installs, echo = F, include = F}
 
@@ -238,8 +191,6 @@ googlePlay$InstallsLog <- factor(googlePlay$InstallsLog, order = TRUE,
        levels = c("0", "0+", "1+", "10+", "100+", "1,000+", "10,000+", "100,000+", "1,000,000+", "10,000,000+", "100,000,000+", "1,000,000,000+"))
 ```
 
-Since the price variable is a nominal factor in the original dataset, we must clean this up as well. We will now convert the price to a numeric by stripping the dollar sign and changing the variable type. Then for further analysis, we will create a new column called Price Categories and bucket the prices into Cheap, Expensive, and Very Expensive (0 to 10, 10+ to 100, 100+ and greater respectively). This will be further expanded upon in section five.
-
 ``` {r type, echo = F}
 # Create two new dataframes for free and paid apps separately
 freeApps <- subset(googlePlay, googlePlay$Price == 0.00)
@@ -256,38 +207,6 @@ paidApps <- subset(googlePlay, googlePlay$Price != 0.00)
   paidApps$PriceCategory <- cut(paidApps$Price, breaks = c(0, 10, 100, 401), labels = c("Cheap", "Expensive", "Very Expensive"), right=FALSE)
 ```
 
-
-
-## Section 3: Comparison of the App Store and Google Play Store
-
-We will begin our analysis by comparing both the App Store and the Google Play Store datasets.  After comparing both data sources, we will select one to use for further in depth analysis.
-
-The App Store dataset originally contained 7197 different apps whereas the Google Play Store originally contained 10840.  After the cleaning was performed, the Google Play Store has 8196 records for different apps.
-
-### 3.1 SMART Question
-#### Are there any variables present in one dataset that do not exist in the other?
-
-Here we can see that the Google Play Store has more variables of interest than the App Store.  The App Store does not have a variable for number of installs, which is something we might want to use in our analysis.
-
-Google Play Store  | App Store   | 
------|-----|
-App |  App | 
-Category  | Category |  
-Rating  | Rating |  
-Reviews |Reviews| 
-Size | Size| 
-Installs | *N/A* | 
-Type |*N/A* | 
-Price | Price |
-Content.Rating | Content_Rating| 
-Last.Updated | *N/A* |  
-Current.Ver | Current_Ver |
-
-
-### 3.2 SMART Question
-#### How do users rate apps in each app store?
-
-Rating will most likely be a response variable of interest later in our analysis so we begin our comparison of the two app stores by looking at the distributions of ratings for each.  
 
 ```{r rating distributions for each}
 hist(googlePlay$Rating, main = 'Frequency of Ratings for the Google Play Store', xlab = 'Rating', col = viridis(20),
@@ -314,18 +233,6 @@ sd_rating_google
 sd_rating_apple
 ```
 
-Upon inspection of the frequency distributions for each, we can see that neither is normally distributed and both are left skewed favoring higher rating.  Due to the non-normal distributions, a two-sample t-test cannot be performed to evaluate the relationship between average ratings in each store.  Instead we have simply calculated the mean and standard deviation of each for further comparison.
-
- Statistic |Google Play Store  | App Store   | 
-----|-----|-----|
- Mean|  `r avg_rating_google` | `r avg_rating_apple` |
-Standard Deviation| `r sd_rating_google`  | `r sd_rating_apple` |  
-
-We notice that the Google Play Store has a higher average rating for its apps than the App Store.  We also notice that the variation in rating is lower in the Google Play Store.  Some of this phenemenon could be attributed to the fact that the Google Play Store has ratings in increments of 0.1 while the App Store uses increments of 0.5.
-
-### 3.3 SMART Question
-#### How many apps are available in both app stores and how do their ratings compare?
-
 ```{r # of reviews exploration, echo=F, include=F}
 #find common apps in both datasets
 a <-intersect(googlePlay$App, appleStore$App)
@@ -342,7 +249,6 @@ appleCommon <- appleStore[appleStore$App %in% a, ]
 length(appleCommon$X)
 length(googleCommon$App)
 ```
-After using the intersect() function to compare app names in both stores, there are a total of **`r length(appleCommon$X)`** apps in common.  Now that we have dataframes containing common apps in both stores, we can revisit our ratings histogram to get a better idea of which store rates higher on average.  
 
 ```{r ratings histogram-common apps}
 #hist(googleCommon$Rating, main = 'Histogram of frequency rating for the Google Playstore', xlab = 'Rating', col = viridis(20),
@@ -350,8 +256,6 @@ After using the intersect() function to compare app names in both stores, there 
 #hist(appleCommon$Rating, main = 'Histogram of frequency rating for the Apple Store', xlab = 'Rating', col = viridis(12),
      #xlim=c(0,5))
 ```
-
-Upon inspection, the histograms (not pictured for brevity) were left skewed and not normally distributed so performing a two-sided t-test would be inappropriate here.  As such, we have calculated the mean and standard deviation of each below and compared it to the mean and standard deviation from above where all apps were considered.
 
 ```{r Rating Mean and SD for common, echo=F, include=F}
 #Get average ratings for both stores
@@ -366,21 +270,6 @@ avg_rating_common_google
 avg_rating_common_apple
 
 ```
-
-
- Statistic |Google Play Store  | App Store   | 
-----|-----|-----|
- Mean (All Apps Inlcuded) |  `r avg_rating_common_google` | `r avg_rating_common_apple` |
- Mean (Common Apps) |  `r avg_rating_google` | `r avg_rating_apple` |
-Standard Deviation (All Apps Inlcuded) | `r sd_rating_google`  | `r sd_rating_apple` |
-Standard Deviation (Common Apps) | `r sd_rating_common_google`  | `r sd_rating_common_apple` |
-
-Once again, the Google Play Store has higher average ratings and than the App Store and less variation.  This tells us that for the exact same apps present in both stores, they tend to be rated higher in the Google Play Store.
-
-### 3.4 SMART Question
-#### Is one store more expensive than the other?
-
-Before selecting one dataset to analyze further, we thought it would be wise to look at price comparisons between the two in case there are differences.  In order to do so, we combined our dataframes consisting of all apps found in both stores.  This allowed us to create a bar chart showing the sum of Price for each store for all shared apps.  
 
 ```{r get new dataframe to make price boxplots}
 googleCommonBoxplot <- googleCommon
@@ -432,20 +321,6 @@ ggplot(price_compare_DF, aes(x=StoreType, y=Price, fill = StoreType)) +
   #theme_void()
 ```
 
-
-Upon inspection of the chart, we can see that some of the same apps differ in price depending which store they are in.  Based on the apps the original datasets have in common, it would be more expensive to purchase all of them from the App Store.  This could mean that the Apple App Store is more expensive, or at least it is for the apps present in our sample.  
-
-
-## Section 4: App Categories
-
-### 4.1 SMART Question
-
-Does app category have a correlation with rating, which categories in the Google Play Store have the highest priced apps and which category has the most highly rated apps?
-
-### 4.2 Category Analysis
-
-By grouping apps by category, we can determine the average rating by category and average price, as well as overall number of apps and number of apps  by category. The most common categories are family, game and tools; below the category distrubution of apps is shown.
-
 ```{r bar2, echo = F}
 ggplot(googlePlay, aes(Category)) + 
         geom_bar(fill = viridis(33), color = 'black') +
@@ -457,9 +332,6 @@ ggplot(googlePlay, aes(Category)) +
         theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black'))
 ```
 
-### 4.3 Categories by Rating
-
-To find the highest and lowest rated categories, the ratings were aggregated according to the app category and the mean was then found for each category. Once the means were found, they were then plotted and a conclusion was drawn.
 
 ```{r bary, echo = F}
 catrating <- aggregate(googlePlay$Rating, list(googlePlay$Category), mean, na.rm = TRUE)
@@ -475,24 +347,6 @@ ggplot(catrating, aes(x = reorder(Category, -Avg_Rating), y = Avg_Rating)) +
         theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 8, color = 'black'))
 ```
 
-Highest Average Rating by Category
-
-```{r top rating}
-head(catrating[order(catrating$Avg_Rating, decreasing = TRUE),], n = 5)
-```
-
-
-Lowest Average Rating by Category
-
-```{r bottom rating}
-tail(catrating[order(catrating$Avg_Rating, decreasing = TRUE),], n = 5)
-```
-
-The highest rated categories on average are Events, Education and Art & Desgin, while the lowest rated categories are Maps & Navigation, Tools and Dating.
-
-### 4.4 Categories by Price
-
-To get the average price of each category, a new subset was created which just contained the paid apps. Then, similarly to the previous section, the prices were aggregated according to the category, the means were calculated and then plotted.
 ``` {r type2, include = F}
 free <- subset(googlePlay, googlePlay$Type == 'Free')
 paid <- subset(googlePlay, googlePlay$Type == 'Paid')
@@ -517,26 +371,10 @@ ggplot(catprice, aes(x = Category, y = Avg_Price)) +
         theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 ```
 
-Highes Average Price by Category
-
-```{r top paid}
-head(catprice[order(catprice$Avg_Price, decreasing = TRUE),], n = 5)
-```
-
-Even though most of the apps in the Google Play Store are free; with `r nrow(free)` free apps and `r nrow(paid)` paid apps. Out of those paid apps, the most expensive ones on average are Finance and Lifestyle apps by a long shot. 
-
-### 4.5 Which app category in the Google Play Store receives most high ratings?
-
-In this section, we would like to identify the most well rated app categories in the Google Play Store. We define ‘most well rated’ as ratings that are greater or equal to 4.8. The score 4.8 is chosen because 95% of app ratings in the Google Play Store are below 4.8. In other words, only 5% of the Google Play Store apps have ratings that are greater or equal to 4.8. Therefore, the 95th percentile helps us to filter the best rated apps.
-
-```{r hist2}
-hist(googlePlay$Rating, main = 'Histogram of frequency rating for the Google Play Store', xlab = 'Rating', col = viridis(20))
-```
 
 ```{r percentile, include = F}
 quantile(googlePlay$Rating, .95)
 ```
-According to the 95th percentile, the apps in the top 5% having a rating of 4.8 or higher.
 
 ```{r best rated}
 top_rated <- subset(googlePlay, googlePlay$Rating >= 4.8)
@@ -544,8 +382,6 @@ top_count <- plyr::count(top_rated$Category)
 names(top_count) <- c('Category', 'Count')
 top_count <- top_count[order(top_count$Count, decreasing = TRUE),]
 ```
-
-To find the categories containing the most apps with a rating of 4.8 or greater, a new subset was created from the Google Play Store dataframe which only contained apps with a rating of 4.8 or greater. There are `r nrow(top_rated)` apps which fall within the highly rated threshold of 4.8. After this, the number of apps from each catergory within this subset was found using the count function. This count was then plotted into a bar chart to graphically demonstrate the distrubution of highly rated apps within different categories.
 
 ```{r topplot}
 ggplot(top_count, aes(x = reorder(Category, -Count), y = Count)) +
@@ -566,23 +402,6 @@ Categories with the most highly rated apps.
 head(top_count[order(top_count$Count, decreasing = TRUE),], n = 5)
 ```
 
-Catergories with the highest ratings are Family (by a large margin), then Lifestyle, Medical and Health & Fitness being very similar.
-
-Overall; the highest rated apps on average are in the Events category, the most expensive apps are in the Finance category and the category with the most highly rated apps are Family.
-
-## Section 5: App Pricing
-
-
-### 5.1 SMART QUESTION: How does the price influence the distribution of apps across category, rating and content rating
-
-
-
-There are `r nrow(freeApps)` free apps and `r nrow(paidApps)` paid apps corresponding to `r format((nrow(freeApps)/nrow(googlePlay))*100, digits=3)`% and `r format((nrow(paidApps)/nrow(googlePlay))*100, digits=3)`% respectively in Google playstore 
-
-
-### 5.2 Do users rate free apps better than paid apps across different categories?
-
-For the different categories in Google Playstore, we want to understand the rating behavior of users for free apps as well as paid apps
 ```{r echo=F}
 # Create new dataframe and new column, assign categorical values of 0 and 1 for free and paid apps respectively   
   googlePlay_cat <- googlePlay[which(googlePlay$Price == 0.00 |googlePlay$Price != 0.00), ]
@@ -597,8 +416,6 @@ For the different categories in Google Playstore, we want to understand the rati
     theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 6, color = 'black')) +
     facet_grid(. ~ PriceCat)
 ```
-
-From the boxplot above, we observe that free apps have a well distributed mean rating across categories compared to paid apps
 
 ```{r echo = F}
 # create new dataframe containing different categories and their respective average rating for free apps
@@ -633,33 +450,6 @@ ggplot(catPaidRating, aes(x = Category, y = Avg_rating)) +
 
 ```
 
-# 5.3 Do users rate free apps better than paid apps?
-
-Top 5 rated category in Free Apps
-
-```{r echo=F}
-# top rated categories for free apps 
-  head(catFreeRating, n = 5)
-```
-
-<<<<<<< HEAD
-Top 5 rated category in Paid Apps 
-=======
-Top 5 rated category in Paid Apps
-
->>>>>>> 7ec38ba96b1a0ba0fb2f24b7205bab769dd7bbdc
-```{r echo=F}
-# top rated caetegories for paid apps
-  head(catPaidRating, n = 5)
-```
-
-<<<<<<< HEAD
-
-=======
->>>>>>> 7ec38ba96b1a0ba0fb2f24b7205bab769dd7bbdc
-### 5.4 How do users rate apps across different content rating for free and paid apps
-
-For the different content categories in Google Playstore, we want to understand the rating behavior of users for free apps as well as paid apps
 
 ```{r echo=F}
   ggplot(googlePlay_cat, aes(x = Content.Rating, y = Rating)) +
@@ -673,7 +463,6 @@ For the different content categories in Google Playstore, we want to understand 
 ```
 
 
-### 5.5 How are free apps distributed by category
 ```{r d, echo = F}
 # create a dataframe sorted by count of category for free apps and plot
 freeAppsCount <- freeApps %>% group_by(Category) %>% dplyr::summarise(NumOfApps = n()) %>% arrange(NumOfApps) %>% mutate(Category = factor(Category, levels = unique(Category)))
@@ -693,13 +482,6 @@ freeAppsCount <- freeApps %>% group_by(Category) %>% dplyr::summarise(NumOfApps 
 
 ```
 
-### 5.6 What are the Top 5 Categories for Free Apps
-
-```{r echo=F}
-  tail(freeAppsCount)
-```
-
-### 5.7 How are paid apps distributed by category
 
 ```{r echo = F}
 # create a dataframe sorted by count of category for paid apps and plot
@@ -718,16 +500,6 @@ ggplot(paidAppsCount, aes(x = Category, y = NumOfApps)) +
   coord_flip()
 ```
 
-### 5.8 What are the Top 5 Categories for Paid Apps
-```{r echo=F}
-  tail(paidAppsCount)
-```
-
- 
-### 5.10 How are the apps distributed across different price categories
-
-The price of apps is divided into categories, with the price range $0.99 - $9.99, $10 - $99.99 and $100 - $400 corresponding to cheap, expensive and very expensive respectively
-
 
 ```{r echo=F}
 # Plot bar chart showing the number of apps for different price categories
@@ -742,10 +514,6 @@ The price of apps is divided into categories, with the price range $0.99 - $9.99
   theme(axis.text.x = element_text(angle = 0, hjust = 1, size = 8, color = 'black'))
 ```
  
- From the bar chart above, most of the apps fall under the cheap category
-
-### 5.11 What are the average ratings across different price categories
-
 ```{r echo=F}
 # create a data frame, group by price category, calulate and sort by average rating
 priceCatRating = paidApps %>% group_by(PriceCategory) %>% summarise( Avg_rating = mean(Rating)) %>% arrange(Avg_rating)
@@ -763,13 +531,7 @@ ggplot(priceCatRating, aes(x = PriceCategory, y = Avg_rating)) +
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 ```
 
-### 5.12 Are the average ratings the same across different price categories
 
-Null Hypothesis: The average ratings are the same across all price categories
-
-Alternate Hypothesis: The average ratings are the different 
-
-We carry out an ANOVA test on the average ratings at different price categories
 ```{r echo=F}
 # Create dataframe and store Price Category and User Rating columns and perform anova
     priceCatRating <- subset(paidApps, select = c("PriceCategory", "Rating"))
@@ -785,8 +547,6 @@ We carry out an ANOVA test on the average ratings at different price categories
   tukeyRatingPrice
 ```
 
-The p-value of `r anovaRatPrice[[1]][[5]][[1]]` is obtained which is lower than our alpha value of 0.05. Hence, we reject the null hypothesis and conclude that there is a significant difference in the average rating across the different price categories. We further under the different in average rating between the price categories using the TukeyHSD test.The result shows a high p-value for the Expensive-Cheap pair, for which we fail to reject the null hypothesis and conclude there is no significant difference in the average ratings for the Expensive-Cheap categories. The Box-plot visualizes this in detail
-
 ```{r echo = F}
 # Create a boxplot of user rating by different price categories
 ggplot(priceCatRating, aes(x = PriceCategory, y = Rating)) +
@@ -800,11 +560,6 @@ ggplot(priceCatRating, aes(x = PriceCategory, y = Rating)) +
       theme(axis.text.x = element_text(angle = 0, hjust = 0.5, size = 10, color = 'black'))
 ```
 
-## 6 Correlation and Linear Models
-
-### 6.1 Plot correlation matrix
-
-We obtain the correlation matrix using the numerical variables
 ```{r echo=F}
 # clean installs column and cast to numeric
   paidApps$Installs <- str_remove(paidApps$Installs, '\\+')
@@ -819,9 +574,6 @@ We obtain the correlation matrix using the numerical variables
 
 ```
 
-### 6.2 Fit different linear models to rating variable
-
-With rating as the target varible, we experiment with different variables to obtain a model that will produce a good fit
 ```{r include=F}
 # fit the price to the rating
   lm1 = lm(Rating ~ Price, data = lcpaidApps)
@@ -841,37 +593,6 @@ With rating as the target varible, we experiment with different variables to obt
   vif(lm3)
 ```
 
-Model  |  1 (Price)  |  2 (Installs)  | 3 (Price+Installs) |  
--------|-----|-----|--------|------|  
-r^2^  | `r format( summary(lm1)$r.squared )` | `r format( summary(lm2)$r.squared )` | `r format( summary(lm3)$r.squared )`  
-Adj r^2^  | `r format( summary(lm1)$adj.r.squared )` | `r format( summary(lm2)$adj.r.squared )` | `r format( summary(lm3)$adj.r.squared )` |  
-Price | `r format( lm1$coefficients['Price'] ) ` (vif: 1) | ---------- | `r format( lm3$coefficients['Price'] ) ` (vif: 1.000552) | 
-| | p:`r format( summary(lm1)$coefficients[,4]['Price'],digits=3) ` | ----------- | p:`r format( summary(lm3)$coefficients[,4]['Price'],digits=3) ` | 
-Installs | | `r format( lm2$coefficients['Installs'] ) ` (vif: 1 ) | `r format( lm3$coefficients['Installs'] ) ` (vif: 1.000552) | 
-| | | p:`r format( summary(lm2)$coefficients[,4]['Installs']) ` | p:`r format( summary(lm3)$coefficients[,4]['Installs'])` |  
-
-## Section 7: Conclusion & Key Takeaways
-
-
-### Section 7.1: Reflection on EDA 
-
-Throughout our EDA process, we have derived many useful insights from the Google Play Store dataset. To provide context of its current position in the market, we compared it with Apple’s App Store data and concluded that Google Play Store apps have higher ratings with a lower standard deviation than Apple’s apps. This phenomenon could be further explored but with the caveat that the users of each app source could have very different qualities and would thus be incomplete without analyzing user data as well.
-
-Shifting attention to solely the Google Play Store data, our next section broke out ratings and price information by app category. It was interesting to see that the highest rated apps were in the Events category and that the lowest rated were in the Dating category. Finance and Lifestyle apps were by far the most expensive. When zeroing in on apps in the 95th rating percentile (4.8 or higher), the Family category came out on top.
-We then analyzed… 
-
-[APP PRICING]
-
-[CORRELATION AND LINEAR MODELS]
-
-
-### Section 7.2: Brainstorming for Future Data Utilization
-
-When brainstorming possible future applications for our findings, we thought it would be useful to create a new variable related to popularity of an app. By combining user input variables into a score, we could apply this score to a prediction. 
-
-Reviewing the correlation of user input data (Rating, Installs, and Reviews), we found that the number of installs and reviews are highly correlated. This makes sense because the more installs an app has, the more opportunity it has to be rated by a user.
-
-
 ```{r corrplot, echo = F, include = T}
 
 # Correlation plot between rating, reviews, and installs
@@ -880,9 +601,6 @@ googlePlay.extract = na.omit(googlePlay.extract)
 cor_matrix = cor(googlePlay.extract)
 corrplot(cor_matrix,method = "color",order = "AOE",addCoef.col = "grey")
 ```
-
-
-To test whether rating would be viable to contribute to the score, we checked to see if it is normally distributed. While left skewed, the distribution displays a curve with otherwise mostly normal qualities.
 
 ```{r Rating Histogram, echo = F, include = T}
 
@@ -894,9 +612,6 @@ ratingHist <- ggplot(googlePlay, aes(x = Rating)) +
 
 ratingHist
 ```
-
-Looking at the Installs distribution presents a challenge. The scale is logarithmic with intervals at 10, 50, 100, 500, and so on. By bucketing the fives into their most previous ones, we can put the intervals in log10 buckets which are more straightforward to analyze. We can see that this distribution is fairly normal while slightly left skewed as well.
-
 
 ```{r Installs Histogram, echo = F, include = T}
 
@@ -914,8 +629,6 @@ installsHist <- ggplot(subset(googlePlay, !is.na(InstallsLog)), aes(x = Installs
 suppressWarnings(installsHist)
 ```
 
-The ratings score was not normally distributed at all. That, plus it’s high correlation with number of installs, it should not be considered in the popularity score calculation.
-
 ```{r Rating Histogram2, include = T}
 
 reviewsHist <- ggplot(googlePlay, aes(x = Reviews)) + 
@@ -925,8 +638,3 @@ reviewsHist <- ggplot(googlePlay, aes(x = Reviews)) +
 
 suppressWarnings(reviewsHist)
 ```
-
-
-### Section 7.3: Key Takeaways and Going Forward
-
-Although a popularity score would be interesting, its application for predictions is a question of usefulness. This user input data is retrospective at best and could not be used in the application of predicting the outcomes for a brand-new app on the market. The data in the Google Play Store is interesting to visualize comparisons between different categories, prices, ratings, etc. However, with low correlation between variables and insignificant p values observed in section 6 make it difficult if not impossible for utilizing this data for a predictive model. Additional data needed for each app that could be useful would be related to user attributes or activity to perhaps determine what kind of ads to target by app category or to create an algorithm to suggest other aps they might find useful based on preferences.
