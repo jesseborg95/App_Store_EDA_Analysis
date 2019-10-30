@@ -1,5 +1,5 @@
 ---
-title: "DATS6101 Group Project: App Analysis - EDA"
+title: "DATS6101 Group Project: App Analysis - EDA Code"
 author: "Jonathan Giguere, Jesse Borg, Ese Emuraye, Sarah Gates"
 date: "October 23rd 2019"
 output:
@@ -102,6 +102,8 @@ str(appleStore)
 
 #### Graph of NA Values
 
+Before performing an EDA, we need to clean the dataset of any N/A values.
+
 ```{r check NA, echo = F, include = T}
 
 # review how many fields are NA
@@ -125,6 +127,7 @@ googlePlay = na.omit(googlePlay)
 # to double check that the NAs have been removed
 sapply(googlePlay,function(x)sum(is.na(x)))
 ```
+
 
 
 ```{r identify dups, echo = F, include = F}
@@ -296,6 +299,8 @@ price_compare_DF <- rbind(googleCommonBoxplot, appleCommonBoxplot)
 
 #### Total Cost (per store) of the 328 Apps Found in Both Stores
 
+Comparing the paid apps in each of the dataset to determine which of the appstores has lower pricing for the same apps
+
 ```{r Make barchart}
 
 ggplot(price_compare_DF, aes(x=StoreType, y=Price, fill = StoreType)) +
@@ -323,6 +328,10 @@ ggplot(price_compare_DF, aes(x=StoreType, y=Price, fill = StoreType)) +
   #coord_polar("y", start=0) +
   #theme_void()
 ```
+
+Exploring the Categories, we want to know the different categories and how many apps in each, the average rating of apps in each category, the average price of paid apps for the each category and the categories with the most 'highly rated apps'.
+
+To find this out we will need to carry out EDA analysis to find mean values of rating and price, subset apps according to different variables such as price and then set a percentile in which we conside the highly rated apps to be in. 
 
 ```{r bar2, echo = F}
 ggplot(googlePlay, aes(Category)) + 
@@ -404,6 +413,10 @@ Categories with the most highly rated apps.
 ```{r topr}
 head(top_count[order(top_count$Count, decreasing = TRUE),], n = 5)
 ```
+
+For the next part if our analysis we want to compare the pricing of apps with factors like rating and content. We also want to create price categories for different pricing so we can compare the apps per price category. Finally we will look at any relationships with price by performing linear regression analyses.
+
+This EDA will need to include subsetting free and paid apps, calculating the averages for rating, setting different price categories and how the ratings change within the different price categories. We will also use Anova tests to see whether the averages are different or not and perform Tukeys based on our findings.
 
 ```{r echo=F}
 # Create new dataframe and new column, assign categorical values of 0 and 1 for free and paid apps respectively   
@@ -563,6 +576,8 @@ ggplot(priceCatRating, aes(x = PriceCategory, y = Rating)) +
       theme(axis.text.x = element_text(angle = 0, hjust = 0.5, size = 10, color = 'black'))
 ```
 
+We also want more information on the correlations between different variables, so to do this we will plot a correlation matrix to see the correlations, if any. We are also thinking about the next project and want to decide whether this dataset will produce good results so we performed some linear regression models to see if any prodections can be made based on correlations.
+
 ```{r echo=F}
 # clean installs column and cast to numeric
   paidApps$Installs <- str_remove(paidApps$Installs, '\\+')
@@ -595,6 +610,8 @@ ggplot(priceCatRating, aes(x = PriceCategory, y = Rating)) +
   summary(lm3)
   vif(lm3)
 ```
+
+Finally we want to see if the user input ratings would be useful to create a popularity score. To do this we ran another correlation plot and then checked for normality distribution of each variable.
 
 ```{r corrplot, echo = F, include = T}
 
