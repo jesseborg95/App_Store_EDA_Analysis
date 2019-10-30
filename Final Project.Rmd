@@ -581,19 +581,15 @@ ggplot(catPaidRating, aes(x = Category, y = Avg_rating)) +
 Top 5 rated category in Free Apps 
 ```{r echo=F}
 # top rated categories for free apps 
-  top5free <- head(catFreeRating, n = 5)
+  head(catFreeRating, n = 5)
 ```
-
-`r top5free`
-
 
 Top 5 rated category in Paid Apps 
 ```{r echo=F}
 # top rated caetegories for paid apps
-  top5paid <- head(catPaidRating, n = 5)
+  head(catPaidRating, n = 5)
 ```
 
-`r top5paid`
 
 ### 5.4 How do users rate apps across different content rating for free and paid apps
 
@@ -714,6 +710,8 @@ ggplot(priceCatRating, aes(x = PriceCategory, y = Avg_rating)) +
 Null Hypothesis: The average ratings are the same across all price categories
 
 Alternate Hypothesis: The average ratings are the different 
+
+We carry out an ANOVA test on the average ratings at different price categories
 ```{r echo=F}
 # Create dataframe and store Price Category and User Rating columns and perform anova
     priceCatRating <- subset(paidApps, select = c("PriceCategory", "Rating"))
