@@ -1,4 +1,4 @@
-# App_Store_EDA_Project
+# App_Store_Exploratory Data Analysis_Project
 Group project using R to analyze Google and Apple app stores. Exploratory data analysis, hypothesis testing, and regression.
 
 ## Motivation
