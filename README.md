@@ -2,7 +2,7 @@
 Group project using R to analyze Google and Apple app stores. Exploratory data analysis, hypothesis testing, and regression.
 
 ## Motivation
-I performed this project as part of a group for an intro to data science class at the George Washington University. The requirements for the project were to perform exploratory data analysis on a sizable dataset of your choice using R.
+I performed this project as part of a group for my Intro to Data Science class at The George Washington University. The requirements for the project were to perform exploratory data analysis on a sizable dataset of your choice using R.
 
 ## Data Source
 My group chose to analyze app store datasets found on Kaggle (https://www.kaggle.com).
